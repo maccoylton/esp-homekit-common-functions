@@ -6,6 +6,26 @@
 #include <homekit/characteristics.h>
 #include <custom_characteristics.h>
 
+
+void get_sysparam_info() {
+    uint32_t base_addr,num_sectors;
+    sysparam_iter_t sysparam_iter;
+    sysparam_status_t sysparam_status;
+    
+    sysparam_get_info(&base_addr, &num_sectors);
+    
+    printf ("get_sysparam_info - Sysparam base address %i, num_sectors %i\n", base_addr, num_sectors);
+    sysparam_status = sysparam_iter_start (&sysparam_iter);
+    while (sysparam_status==0){
+        sysparam_status = sysparam_iter_next (&sysparam_iter);
+        if (sysparam_status==0){
+            printf("get_sysparam_info - sysparam name: %s\n", sysparam_iter.key);
+        }
+    }
+    sysparam_iter_end (&sysparam_iter);
+}
+
+
 void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t value){
     
     sysparam_status_t status = SYSPARAM_OK;

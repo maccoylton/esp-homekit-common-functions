@@ -58,3 +58,6 @@
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
 
 void load_characteristic_from_flash (homekit_characteristic_t *ch);
+
+void get_sysparam_info();
+
