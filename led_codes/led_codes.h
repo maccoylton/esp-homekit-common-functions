@@ -23,6 +23,8 @@ typedef struct blinking_params_t {
     uint8_t duration;
 } blinking_params_t;
 
+extern int led_off_value;
+
 #define GENERIC_ERROR               (blinking_params_t){6,0}
 #define SENSOR_ERROR                (blinking_params_t){5,0}
 #define WIFI_CONNECTED              (blinking_params_t){1,2}

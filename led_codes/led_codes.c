@@ -42,11 +42,12 @@ void led_code_run() {
     
     gpio_write(led_params.gpio, led_params.status);
     
-    if (led_params.status == 0) {
+    if (led_params.status != led_off_value) {
         led_params.delay = (led_params.blinking_params.duration * 1000) + 90;
     } else {
         led_params.delay = DURATION_OFF;
         led_params.count++;
+
     }
     
     sdk_os_timer_disarm(&led_params.timer);
@@ -63,7 +64,7 @@ void led_code(uint8_t gpio, blinking_params_t blinking_params) {
     sdk_os_timer_disarm(&led_params.timer);
     sdk_os_timer_setfn(&led_params.timer, led_code_run, NULL);
     
-    led_params.status = 1;
+    led_params.status = led_off_value;
     led_params.count = 0;
     
     led_code_run();
