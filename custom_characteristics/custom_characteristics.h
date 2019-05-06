@@ -51,8 +51,45 @@
 .value = HOMEKIT_BOOL_(_value), \
 ##__VA_ARGS__
 
-#endif
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LPG_LEVEL HOMEKIT_APPLE_UUID2("F0000003")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LPG_LEVEL(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_LPG_LEVEL, \
+.description = "LPG Level", \
+.format = homekit_format_float, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {1000}, \
+.value = HOMEKIT_FLOAT_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_METHANE_LEVEL HOMEKIT_APPLE_UUID2("F0000004")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_METHANE_LEVEL(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_METHANE_LEVEL, \
+.description = "Mathane Level", \
+.format = homekit_format_float, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {1000}, \
+.value = HOMEKIT_FLOAT_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL HOMEKIT_APPLE_UUID2("F0000005")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL, \
+.description = "Ammonium Level", \
+.format = homekit_format_float, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {1000}, \
+.value = HOMEKIT_FLOAT_(_value), \
+##__VA_ARGS__
+
+#endif
 
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
