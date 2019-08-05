@@ -52,49 +52,44 @@
 ##__VA_ARGS__
 
 
-#define HOMEKIT_CHARACTERISTIC_CUSTOM_LPG_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000001")
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LPG_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000003")
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LPG_LEVEL(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_LPG_LEVEL, \
-.description = "Poll Period", \
-.format = homekit_format_uint8, \
-.unit = homekit_unit_seconds, \
+.description = "LPG Level", \
+.format = homekit_format_float, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {10000}, \
 .min_step = (float[]) {1}, \
-.value = HOMEKIT_UINT8_(_value), \
+.value = HOMEKIT_FLOAT_(_value), \
 ##__VA_ARGS__
 
-#define HOMEKIT_CHARACTERISTIC_CUSTOM_METHANE_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000001")
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_METHANE_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000004")
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_METHANE_LEVEL(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_METHANE_LEVEL, \
-.description = "Poll Period", \
-.format = homekit_format_uint8, \
-.unit = homekit_unit_seconds, \
+.description = "Methane Level", \
+.format = homekit_format_float, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {10000}, \
 .min_step = (float[]) {1}, \
-.value = HOMEKIT_UINT8_(_value), \
+.value = HOMEKIT_FLOAT_(_value), \
 ##__VA_ARGS__
 
-#define HOMEKIT_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000001")
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000005")
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_AMMONIUM_LEVEL, \
-.description = "Poll Period", \
-.format = homekit_format_uint8, \
-.unit = homekit_unit_seconds, \
+.description = "Amonium Level", \
+.format = homekit_format_float, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {10000}, \
 .min_step = (float[]) {1}, \
-.value = HOMEKIT_UINT8_(_value), \
+.value = HOMEKIT_FLOAT_(_value), \
 ##__VA_ARGS__
 
 
+#endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
 
