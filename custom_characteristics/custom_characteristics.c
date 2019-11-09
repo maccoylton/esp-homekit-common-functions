@@ -7,6 +7,20 @@
 #include <custom_characteristics.h>
 
 
+
+void print_binary_value(char *key, uint8_t *value, size_t len) {
+    size_t i;
+    
+    printf("  %s:", key);
+    for (i = 0; i < len; i++) {
+        if (!(i & 0x0f)) {
+            printf("\n   ");
+        }
+        printf(" %02x", value[i]);
+    }
+    printf("\n");
+}
+
 void get_sysparam_info() {
     uint32_t base_addr,num_sectors;
     sysparam_iter_t sysparam_iter;
@@ -16,14 +30,28 @@ void get_sysparam_info() {
     
     printf ("get_sysparam_info - Sysparam base address %i, num_sectors %i\n", base_addr, num_sectors);
     sysparam_status = sysparam_iter_start (&sysparam_iter);
+    if (sysparam_status != 0){
+        printf("get_sysparam_info - iter_start status %d\n",sysparam_status);
+    }
     while (sysparam_status==0){
         sysparam_status = sysparam_iter_next (&sysparam_iter);
         if (sysparam_status==0){
-            printf("get_sysparam_info - sysparam name: %s\n", sysparam_iter.key);
+            if (!sysparam_iter.binary)
+                printf("get_sysparam_info - sysparam name: %s, value:%s\n", sysparam_iter.key, (char *)sysparam_iter.value);
+            else
+                print_binary_value(sysparam_iter.key, sysparam_iter.value, sysparam_iter.value_len);
+        } else {
+            printf("get_sysparam_info - while loop status %d\n",sysparam_status);
+        
         }
     }
     sysparam_iter_end (&sysparam_iter);
+    if (sysparam_status != SYSPARAM_NOTFOUND) {
+        //   SYSPARAM_NOTFOUND is the normal status when we've reached the end of all entries.
+        printf ("get_sysparam_info - sysparam iter_end error:%d\n", sysparam_status);
+    }
 }
+
 
 
 void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t value){
