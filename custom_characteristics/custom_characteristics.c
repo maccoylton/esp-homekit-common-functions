@@ -37,12 +37,20 @@ void get_sysparam_info() {
         sysparam_status = sysparam_iter_next (&sysparam_iter);
         if (sysparam_status==0){
             if (!sysparam_iter.binary)
-                printf("get_sysparam_info - sysparam name: %s, value:%s\n", sysparam_iter.key, (char *)sysparam_iter.value);
-            else
-                print_binary_value(sysparam_iter.key, sysparam_iter.value, sysparam_iter.value_len);
+                if (strncmp(sysparam_iter.key,"wifi_password", 13 ) == 0) {
+                    if (strlen (sysparam_iter.value) == 0){
+                        printf("get_sysparam_info - sysparam name: %s, value: blank\n", sysparam_iter.key);
+                    } else {
+                        printf("get_sysparam_info - sysparam name: %s, value:%s\n", sysparam_iter.key,"**********");
+                    }
+                } else {
+                    printf("get_sysparam_info - sysparam name: %s, value:%s\n", sysparam_iter.key, (char *)sysparam_iter.value);
+                }
+                else
+                    print_binary_value(sysparam_iter.key, sysparam_iter.value, sysparam_iter.value_len);
         } else {
             printf("get_sysparam_info - while loop status %d\n",sysparam_status);
-        
+            
         }
     }
     sysparam_iter_end (&sysparam_iter);
