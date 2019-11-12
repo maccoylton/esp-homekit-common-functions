@@ -34,6 +34,8 @@ void reset_configuration();
 void wifi_reset_set(homekit_value_t value);
 void on_wifi_ready ( void) ;
 void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *manufacturer, homekit_characteristic_t *model, homekit_characteristic_t *serial, homekit_characteristic_t *revision);
+void reset_button_callback(uint8_t gpio, void* args, uint8_t param);
+
 
 
 
