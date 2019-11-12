@@ -173,7 +173,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     udplog_init(3);
     get_sysparam_info();
     
-    create_accessory_name(model->value.string_value, model->value.string_value, name, serial);
+    create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
     
     int c_hash=ota_read_sysparam(&manufacturer->value.string_value,&serial->value.string_value,
                                  &model->value.string_value,&revision->value.string_value);
