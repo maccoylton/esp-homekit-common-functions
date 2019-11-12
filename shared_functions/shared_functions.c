@@ -77,7 +77,9 @@ void reset_button_callback(uint8_t gpio, void* args, uint8_t param) {
 }
 
 
-void create_accessory_name(const char* name, const char* model, homekit_characteristic_t accessory_name, homekit_characteristic_t accessory_serial) {
+void create_accessory_name(const char* name, const char* model, homekit_characteristic_t *accessory_name, homekit_characteristic_t *accessory_serial){
+    
+    printf ("Create accessory name\n|");
     
     int serialLength = snprintf(NULL, 0, "%d", sdk_system_get_chip_id());
     
@@ -100,8 +102,8 @@ void create_accessory_name(const char* name, const char* model, homekit_characte
              name, model, serialNumberValue);
     
     
-    accessory_name.value = HOMEKIT_STRING(name_value);
-    accessory_serial.value = accessory_name.value;
+    accessory_name->value = HOMEKIT_STRING(name_value);
+    accessory_serial->value = HOMEKIT_STRING(serialNumberValue);
 }
 
 
@@ -151,5 +153,32 @@ void on_homekit_event(homekit_event_t event) {
         default:
             printf("on_homekit_event: Default event %d ", event);
     }
+    
+}
+
+void on_wifi_ready ( void) {
+    
+    printf("on_wifi_ready\n");
+    
+    homekit_server_init(&config);
+    
+}
+
+
+void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *manufacturer, homekit_characteristic_t *model, homekit_characteristic_t *serial, homekit_characteristic_t *revision){
+    
+    printf ("Standard init\n");
+    uart_set_baud(0, 115200);
+    
+    udplog_init(3);
+    get_sysparam_info();
+    
+    create_accessory_name(model->value.string_value, model->value.string_value, name, serial);
+    
+    int c_hash=ota_read_sysparam(&manufacturer->value.string_value,&serial->value.string_value,
+                                 &model->value.string_value,&revision->value.string_value);
+    if (c_hash==0) c_hash=1;
+    config.accessories[0]->config_number=c_hash;
+        
     
 }
