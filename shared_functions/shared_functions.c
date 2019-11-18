@@ -122,6 +122,8 @@ void on_homekit_event(homekit_event_t event) {
             else
             {
                 printf("on_homekit_event: Acessory is NOT paired on initialisation\n");
+                accessory_init_not_paired ();
+
             }
             break;
         case HOMEKIT_EVENT_CLIENT_CONNECTED:
@@ -145,10 +147,11 @@ void on_homekit_event(homekit_event_t event) {
             break;
         case HOMEKIT_EVENT_PAIRING_REMOVED:
             printf("on_homekit_event: Pairing removed\n");
-            if (!homekit_is_paired())
+            if (!homekit_is_paired()){
             /* if we have no more pairings then restart */
                 printf("on_homekit_event: no more pairings so restart\n");
-            sdk_system_restart();
+                sdk_system_restart();
+            }
             break;
         default:
             printf("on_homekit_event: Default event %d ", event);
