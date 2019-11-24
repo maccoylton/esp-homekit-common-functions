@@ -7,7 +7,74 @@
 
 #include <shared_functions.h>
 
+#define CHECK_INTERVAL 30000
+#define WIFI_ISSUE                  (blinking_params_t){10,0}
+
+
 bool accessory_paired = false;
+
+
+bool wifi_connected;
+
+
+void wifi_check_interval_set (homekit_value_t value){
+    
+    wifi_check_interval.value.int_value = value.int_value;
+    save_characteristic_to_flash (&wifi_check_interval, wifi_check_interval.value);
+    printf ("%s Wifi Check Interval: %d\n", __func__, wifi_check_interval.value.int_value);
+    
+}
+
+void checkWifiTask(void *pvParameters)
+{
+    uint8_t status ;
+    
+    wifi_connected = false;
+    
+    while (1)
+    {
+        if (wifi_check_interval.value.int_value != 0) {
+            /* only check if no zero */
+            printf("\n%s WiFi: check interval %d\n", __func__, wifi_check_interval.value.int_value);
+            status = sdk_wifi_station_get_connect_status();
+            switch (status)
+            {
+                case STATION_WRONG_PASSWORD:
+                    printf("\n%s WiFi: wrong password\n\r", __func__);
+                    led_code (status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                case STATION_NO_AP_FOUND:
+                    printf("\n%s WiFi: AP not found\n\r", __func__);
+                    led_code (status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                case STATION_CONNECT_FAIL:
+                    printf("\n%s WiFi: connection failed\n\r", __func__);
+                    led_code (status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                case STATION_GOT_IP:
+                    printf("\n%s WiFi: connection ok\n\r", __func__);
+                    wifi_connected = true;
+                    led_code (status_led_gpio,  WIFI_CONNECTED);
+                    break;
+                default:
+                    printf("\n%s WiFi: status = %d\n\r", __func__, status);
+                    led_code (status_led_gpio, WIFI_ISSUE);
+                    break;
+                    
+            }
+        }
+        else {
+            printf("\n%s WiFi: no check performed\n", __func__);
+
+        }
+        
+        vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
+    }
+}
+
 
 void wifi_reset_set(homekit_value_t value){
     printf("Resetting Wifi Config\n");
@@ -24,7 +91,7 @@ void identify_task(void *_args) {
 
 void identify(homekit_value_t _value) {
     printf("Identify\n");
-    xTaskCreate(identify_task, "Identify", 128, NULL, 2, NULL);
+    xTaskCreate(identify_task, "Identify", 128, NULL, tskIDLE_PRIORITY, NULL);
 }
 
 
@@ -66,7 +133,7 @@ void reset_configuration_task() {
 
 void reset_configuration() {
     printf("Resetting Device configuration\n");
-    xTaskCreate(reset_configuration_task, "Reset configuration", 256, NULL, 2, NULL);
+    xTaskCreate(reset_configuration_task, "Reset configuration", 256, NULL, tskIDLE_PRIORITY, NULL);
 }
 
 
@@ -162,7 +229,6 @@ void on_homekit_event(homekit_event_t event) {
 void on_wifi_ready ( void) {
     
     printf("on_wifi_ready\n");
-    
     homekit_server_init(&config);
     
 }
@@ -176,12 +242,17 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     udplog_init(3);
     get_sysparam_info();
     
+    load_characteristic_from_flash (&wifi_check_interval);
+    
     create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
     
     int c_hash=ota_read_sysparam(&manufacturer->value.string_value,&serial->value.string_value,
                                  &model->value.string_value,&revision->value.string_value);
     if (c_hash==0) c_hash=1;
     config.accessories[0]->config_number=c_hash;
+    
+    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY, NULL);
+
         
     
 }

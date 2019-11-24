@@ -19,10 +19,10 @@ shared functions used all accessorys
 #include <ota-api.h>
 
 
-
 extern const int status_led_gpio;
 extern bool accessory_paired;
 extern homekit_server_config_t config;
+extern homekit_characteristic_t wifi_check_interval;
 
 void accessory_init(void);
 /* initalise anything you don't want started until wifi and pairing is confirmed */
@@ -59,6 +59,10 @@ void wifi_reset_set(homekit_value_t value);
 
 void on_wifi_ready ( void) ;
 /* called when WiFi is connected */
+
+
+void wifi_check_interval_set (homekit_value_t value);
+/* used to alter the interval of the Wifi Check≤ intervals of 10 seconds, 0 for no check */
 
 
 

@@ -100,6 +100,22 @@
 .value = HOMEKIT_BOOL_(_value), \
 ##__VA_ARGS__
 
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_WIFI_CHECK_INTERVAL HOMEKIT_CUSTOM_UUID("F0000007")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_WIFI_CHECK_INTERVAL(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_WIFI_CHECK_INTERVAL, \
+.description = "WiFi check interval", \
+.format = homekit_format_int, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {300}, \
+.min_step = (float[]) {10}, \
+.value = HOMEKIT_INT_(_value), \
+##__VA_ARGS__
+
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
