@@ -23,6 +23,8 @@ extern const int status_led_gpio;
 extern bool accessory_paired;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
+struct sdk_rst_info* reset_information;
+
 
 void accessory_init(void);
 /* initalise anything you don't want started until wifi and pairing is confirmed */
