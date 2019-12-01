@@ -116,6 +116,70 @@
 ##__VA_ARGS__
 
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_RED_GPIO HOMEKIT_CUSTOM_UUID_DBB("F0000008")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_RED_GPIO(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_RED_GPIO, \
+.description = "RED GPIO", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {16}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_GREEN_GPIO HOMEKIT_CUSTOM_UUID_DBB("F0000009")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_GREEN_GPIO(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_GREEN_GPIO, \
+.description = "GREN GPIO", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {16}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_BLUE_GPIO HOMEKIT_CUSTOM_UUID_DBB("F000000A")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_BLUE_GPIO(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_BLUE_GPIO, \
+.description = "BLUE GPIO", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {16}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_WHITE_GPIO HOMEKIT_CUSTOM_UUID_DBB("F000000B")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_WHITE_GPIO(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_WHITE_GPIO, \
+.description = "WHITE GPIO", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {16}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LED_BOOST HOMEKIT_CUSTOM_UUID_DBB("F000000C")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LED_BOOST(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_LED_BOOST, \
+.description = "LED BOOST", \
+.format = homekit_format_float, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {5}, \
+.value = HOMEKIT_FLOAT_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
