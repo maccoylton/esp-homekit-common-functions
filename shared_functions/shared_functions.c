@@ -179,17 +179,17 @@ void on_homekit_event(homekit_event_t event) {
     
     switch (event) {
         case HOMEKIT_EVENT_SERVER_INITIALIZED:
-            printf("on_homekit_event: Server initialised\n");
+            printf("on_homekit_event: Server initialised, Free Heap=%d\n", xPortGetFreeHeapSize());
             if (homekit_is_paired()){
                 /* if server has started and we already have a pairing then initialise*/
                 accessory_paired = true;
-                printf("on_homekit_event: Acessory is paired on initialisation\n");
+                printf("on_homekit_event: Acessory is paired on initialisation, Free Heap=%d\n", xPortGetFreeHeapSize());
                 accessory_init ();
                 led_code( status_led_gpio, WIFI_CONNECTED);
             }
             else
             {
-                printf("on_homekit_event: Acessory is NOT paired on initialisation\n");
+                printf("on_homekit_event: Acessory is NOT paired on initialisation, Free Heap=%d\n", xPortGetFreeHeapSize());
                 accessory_init_not_paired ();
 
             }
