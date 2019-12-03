@@ -40,27 +40,27 @@ void checkWifiTask(void *pvParameters)
             switch (status)
             {
                 case STATION_WRONG_PASSWORD:
-                    printf("\n%s WiFi: wrong password\n\r", __func__);
+                    printf("%s WiFi: wrong password\n\r", __func__);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_NO_AP_FOUND:
-                    printf("\n%s WiFi: AP not found\n\r", __func__);
+                    printf("%s WiFi: AP not found\n\r", __func__);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_CONNECT_FAIL:
-                    printf("\n%s WiFi: connection failed\n\r", __func__);
+                    printf("%s WiFi: connection failed\n\r", __func__);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_GOT_IP:
-                    printf("\n%s WiFi: connection ok\n\r", __func__);
+                    printf("%s WiFi: connection ok\n\r", __func__);
                     wifi_connected = true;
                     led_code (status_led_gpio,  WIFI_CONNECTED);
                     break;
                 default:
-                    printf("\n%s WiFi: status = %d\n\r", __func__, status);
+                    printf("%s WiFi: status = %d\n\r", __func__, status);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     break;
                     
@@ -70,7 +70,8 @@ void checkWifiTask(void *pvParameters)
             printf("\n%s WiFi: no check performed\n", __func__);
 
         }
-        
+        printf ("%s: Free Heap=%d, Free Stack=%lu\n", __func__, xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)*4);
+    
         vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
     }
 }
@@ -194,10 +195,11 @@ void on_homekit_event(homekit_event_t event) {
             }
             break;
         case HOMEKIT_EVENT_CLIENT_CONNECTED:
-            printf("on_homekit_event: Client connected\n");
+            printf("on_homekit_event: Client connected, Free Heap=%d\n", xPortGetFreeHeapSize());
+
             break;
         case HOMEKIT_EVENT_CLIENT_VERIFIED:
-            printf("on_homekit_event: Client verified\n");
+            printf("on_homekit_event: Client verified, Free Heap=%d\n", xPortGetFreeHeapSize());
             /* we weren't paired on started up but we now are */
             if (!accessory_paired ){
                 accessory_paired = true;
@@ -207,13 +209,13 @@ void on_homekit_event(homekit_event_t event) {
             }
             break;
         case HOMEKIT_EVENT_CLIENT_DISCONNECTED:
-            printf("on_homekit_event: Client disconnected\n");
+            printf("on_homekit_event: Client disconnected, Free Heap=%d\n", xPortGetFreeHeapSize());
             break;
         case HOMEKIT_EVENT_PAIRING_ADDED:
-            printf("on_homekit_event: Pairing added\n");
+            printf("on_homekit_event: Pairing added, Free Heap=%d\n", xPortGetFreeHeapSize());
             break;
         case HOMEKIT_EVENT_PAIRING_REMOVED:
-            printf("on_homekit_event: Pairing removed\n");
+            printf("on_homekit_event: Pairing removed, Free Heap=%d\n", xPortGetFreeHeapSize());
             if (!homekit_is_paired()){
             /* if we have no more pairings then restart */
                 printf("on_homekit_event: no more pairings so restart\n");
@@ -221,7 +223,7 @@ void on_homekit_event(homekit_event_t event) {
             }
             break;
         default:
-            printf("on_homekit_event: Default event %d ", event);
+            printf("on_homekit_event: Default event %d,  Free Heap=%d\n", event, xPortGetFreeHeapSize());
     }
     
 }
@@ -247,10 +249,12 @@ void on_wifi_ready ( void) {
 
 void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *manufacturer, homekit_characteristic_t *model, homekit_characteristic_t *serial, homekit_characteristic_t *revision){
     
-    printf ("Standard init\n");
+   
     uart_set_baud(0, 115200);
-    
     udplog_init(3);
+    printf("%s:SDK version: %s, free heap %u\n", __func__, sdk_system_get_sdk_version(),
+           xPortGetFreeHeapSize());
+
     get_sysparam_info();
     
     load_characteristic_from_flash (&wifi_check_interval);
