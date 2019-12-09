@@ -35,42 +35,42 @@ void checkWifiTask(void *pvParameters)
     {
         if (wifi_check_interval.value.int_value != 0) {
             /* only check if no zero */
-            printf("\n%s WiFi: check interval %d\n", __func__, wifi_check_interval.value.int_value);
+            printf("\n%s WiFi: check interval %d, Status:\n", __func__, wifi_check_interval.value.int_value);
             status = sdk_wifi_station_get_connect_status();
             switch (status)
             {
                 case STATION_WRONG_PASSWORD:
-                    printf("%s WiFi: wrong password\n\r", __func__);
+                    printf(" wrong password ");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_NO_AP_FOUND:
-                    printf("%s WiFi: AP not found\n\r", __func__);
+                    printf(" AP not found ");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_CONNECT_FAIL:
-                    printf("%s WiFi: connection failed\n\r", __func__);
+                    printf(" connection failed\n\r");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_GOT_IP:
-                    printf("%s WiFi: connection ok\n\r", __func__);
+                    printf(" connection ok ");
                     wifi_connected = true;
                     led_code (status_led_gpio,  WIFI_CONNECTED);
                     break;
                 default:
-                    printf("%s WiFi: status = %d\n\r", __func__, status);
+                    printf(" default = %d ", status);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     break;
                     
             }
         }
         else {
-            printf("\n%s WiFi: no check performed\n", __func__);
+            printf("\n%s WiFi: no check performed ", __func__);
 
         }
-        printf ("%s: Free Heap=%d, Free Stack=%lu\n", __func__, xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)*4);
+        printf (": Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)*4);
     
         vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
     }

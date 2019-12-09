@@ -71,10 +71,10 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
     float float_value;
     char *string_value=NULL;    
 
-    printf ("Save characteristic to flash\n");
+    printf ("Save characteristic to flash %s\n",ch->description);
     switch (ch->format) {
         case homekit_format_bool:
-            printf ("writing bool value to flash\n");
+            printf ("writing bool value to flash %s\n", ch->value.bool_value ? "true" : "false");
             status = sysparam_get_bool(ch->description, &bool_value);
             if (status == SYSPARAM_OK && bool_value != ch->value.bool_value) {
                 status = sysparam_set_bool(ch->description, ch->value.bool_value);
@@ -83,7 +83,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
             }
             break;
         case homekit_format_uint8:
-            printf ("writing int8 value to flash\n");
+            printf ("writing int8 value to flash %d\n", ch->value.int_value);
             status = sysparam_get_int8(ch->description, &int8_value);
             if (status == SYSPARAM_OK && int8_value != ch->value.int_value) {
                 status = sysparam_set_int8(ch->description, ch->value.int_value);
@@ -93,7 +93,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
             break;
         case homekit_format_uint16:
         case homekit_format_uint32:
-            printf ("writing int32 value to flash\n");
+            printf ("writing int32 value to flash %d\n",  ch->value.int_value);
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK && int32_value != ch->value.int_value) {
                 status = sysparam_set_int32(ch->description, ch->value.int_value);
@@ -102,7 +102,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
             }
             break;
         case homekit_format_string:
-            printf ("writing string value to flash\n");
+            printf ("writing string value to flash %s\n", ch->value.string_value);
             status = sysparam_get_string(ch->description, &string_value);
             if (status == SYSPARAM_OK && !strcmp (string_value, ch->value.string_value)) {
                 status = sysparam_set_string(ch->description, ch->value.string_value);
@@ -112,7 +112,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
             free(string_value);
             break;
         case homekit_format_float:
-            printf ("writing float value to flash\n");
+            printf ("writing float value to flash %f\n", ch->value.float_value);
             status = sysparam_get_int32(ch->description, &int32_value);
             float_value = int32_value * 1.00f / 100;
             if (status == SYSPARAM_OK && float_value != ch->value.float_value) {
@@ -146,40 +146,45 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
     printf ("Loading sysparam %s\n",ch->description);
     switch (ch->format){
         case homekit_format_bool:
-            printf("Loading bool\n");
+            printf("Loading bool ");
             status = sysparam_get_bool(ch->description, &bool_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.bool_value = bool_value;
+                printf("%s\n", ch->value.bool_value ? "true" : "false");
             }
             break;
         case homekit_format_uint8:
-            printf("Loading int8\n");
+            printf("Loading int8 ");
             status = sysparam_get_int8(ch->description, &int8_value);
             if (status == SYSPARAM_OK) {
                 ch->value.int_value = int8_value;
+                printf("%d\n", ch->value.int_value);
             }
             break;
         case homekit_format_uint16:
         case homekit_format_uint32:
-            printf("Loading in32\n");
+            printf("Loading in32 ");
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = int32_value;
+                printf("%d\n", ch->value.int_value);
             }
             break;
         case homekit_format_string:
-            printf("Loading string\n");
+            printf("Loading string ");
             status = sysparam_get_string(ch->description, &string_value);
             if (status == SYSPARAM_OK) {
                 ch->value = HOMEKIT_STRING(string_value);
+                printf("%s\n", string_value);
             }
             break;
         case homekit_format_float:
-            printf("Loading float\n");
+            printf("Loading float ");
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.float_value = int32_value * 1.0f /100;
-            }
+                printf("%f\n", ch->value.float_value);
+                }
             break;
         case homekit_format_uint64:
         case homekit_format_int:
