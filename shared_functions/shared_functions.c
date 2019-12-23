@@ -12,10 +12,103 @@
 
 
 bool accessory_paired = false;
+TaskHandle_t task_stats_task_handle = NULL;
 
 
 bool wifi_connected;
 
+
+void task_stats_task ( void *args)
+{
+    TaskStatus_t *pxTaskStatusArray;
+    UBaseType_t uxArraySize, x;
+    uint32_t ulTotalRunTime;
+    unsigned long ulStatsAsPercentage;
+    
+    
+    printf ("%s", __func__);
+    
+    while (1) {
+        /* Take a snapshot of the number of tasks in case it changes while this
+         function is executing. */
+        uxArraySize = uxTaskGetNumberOfTasks();
+        
+        printf (", uxTaskGetNumberOfTasks %ld", uxArraySize);
+        /* Allocate a TaskStatus_t structure for each task.  An array could be
+         allocated statically at compile time. */
+        pxTaskStatusArray = pvPortMalloc( uxArraySize * sizeof( TaskStatus_t ) );
+        
+        printf (", pvPortMalloc");
+        
+        if( pxTaskStatusArray != NULL )
+        {
+            /* Generate raw status information about each task. */
+            uxArraySize = uxTaskGetSystemState( pxTaskStatusArray,
+                                               uxArraySize,
+                                               &ulTotalRunTime );
+            
+            printf (", uxTaskGetSystemState, ulTotalRunTime %d, array size %ld\n", ulTotalRunTime, uxArraySize);
+            
+            /* Avoid divide by zero errors. */
+            /*        if( ulTotalRunTime > 0 )
+             {*/
+            /* For each populated position in the pxTaskStatusArray array,
+             format the raw data as human readable ASCII data. */
+            for( x = 0; x < uxArraySize; x++ )
+            {
+                /* What percentage of the total run time has the task used?
+                 This will always be rounded down to the nearest integer.
+                 ulTotalRunTimeDiv100 has already been divided by 100. */
+                ulStatsAsPercentage =
+                pxTaskStatusArray[ x ].ulRunTimeCounter / ulTotalRunTime / 100;
+                
+                
+                printf ( "Name:%-20s,  Runtime Counter:%-3d, Current State:%-3d, Current Priority:%-5ld, Base Priority:%-5ld, High Water Mark (bytes) %-5d\n",
+                        pxTaskStatusArray[ x ].pcTaskName,
+                        pxTaskStatusArray[ x ].ulRunTimeCounter,
+                        pxTaskStatusArray[ x ].eCurrentState,
+                        pxTaskStatusArray[ x ].uxCurrentPriority ,
+                        pxTaskStatusArray[ x ].uxBasePriority,
+                        pxTaskStatusArray[x].usStackHighWaterMark);
+                
+                /*                printf ( " Runtime Percentage:%lu,",ulStatsAsPercentage);*/
+                
+            }
+            /*        }*/
+            
+            /* The array is no longer needed, free the memory it consumes. */
+            vPortFree( pxTaskStatusArray );
+            printf ("%s, vPortFree\n", __func__);
+        }
+        vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
+    }
+    
+}
+
+void task_stats_set (homekit_value_t value) {
+   
+    printf("Task Stats\n");
+    if (value.bool_value)
+        {
+            if (task_stats_task_handle == NULL){
+                xTaskCreate(task_stats_task, "task_stats_task", 512 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
+            } else {
+                printf ("%s task_Status_set TRUE, but task pointer not NULL\n", __func__);
+            }
+        }
+    else
+    {
+        if (task_stats_task_handle != NULL){
+            vTaskDelete (task_stats_task_handle);
+            task_stats_task_handle = NULL;
+        } else {
+            printf ("%s task_Status_set FALSE, but task pointer is NULL\n", __func__);
+        }
+
+        
+    }
+    
+}
 
 void wifi_check_interval_set (homekit_value_t value){
     
@@ -35,43 +128,44 @@ void checkWifiTask(void *pvParameters)
     {
         if (wifi_check_interval.value.int_value != 0) {
             /* only check if no zero */
-            printf("\n%s WiFi: check interval %d, Status:\n", __func__, wifi_check_interval.value.int_value);
+            printf("\n%s WiFi: check interval %d, Status: ", __func__, wifi_check_interval.value.int_value);
             status = sdk_wifi_station_get_connect_status();
             switch (status)
             {
                 case STATION_WRONG_PASSWORD:
-                    printf(" wrong password ");
+                    printf("wrong password: ");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_NO_AP_FOUND:
-                    printf(" AP not found ");
+                    printf("AP not found: ");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_CONNECT_FAIL:
-                    printf(" connection failed\n\r");
+                    printf("connection failed: ");
                     led_code (status_led_gpio, WIFI_ISSUE);
                     wifi_connected = false;
                     break;
                 case STATION_GOT_IP:
-                    printf(" connection ok ");
+                    printf("connection ok: ");
                     wifi_connected = true;
                     led_code (status_led_gpio,  WIFI_CONNECTED);
                     break;
                 default:
-                    printf(" default = %d ", status);
+                    printf(" default = %d: ", status);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     break;
                     
             }
         }
         else {
-            printf("\n%s WiFi: no check performed ", __func__);
+            printf("\n%s : no check performed ", __func__);
 
         }
-        printf (": Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)*4);
-    
+        printf ("Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)/4);
+        /*uxTaskGetStackHighWaterMark returns a number in bytes, stack is created in words, so device by 4 to get nujber of words left on stack */
+        
         vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
     }
 }
@@ -92,7 +186,7 @@ void identify_task(void *_args) {
 
 void identify(homekit_value_t _value) {
     printf("Identify\n");
-    xTaskCreate(identify_task, "Identify", 128, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(identify_task, "Identify", 128, NULL, tskIDLE_PRIORITY+1, NULL);
 }
 
 
@@ -134,7 +228,7 @@ void reset_configuration_task() {
 
 void reset_configuration() {
     printf("Resetting Device configuration\n");
-    xTaskCreate(reset_configuration_task, "Reset configuration", 256, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate(reset_configuration_task, "Reset configuration", 256, NULL, tskIDLE_PRIORITY+1, NULL);
 }
 
 
@@ -251,7 +345,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     
    
     uart_set_baud(0, 115200);
-    udplog_init(3);
+    udplog_init(tskIDLE_PRIORITY+1);
     printf("%s:SDK version: %s, free heap %u\n", __func__, sdk_system_get_sdk_version(),
            xPortGetFreeHeapSize());
 
@@ -266,7 +360,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     if (c_hash==0) c_hash=1;
     config.accessories[0]->config_number=c_hash;
     
-    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY, NULL);
+    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, NULL);
 
         
     

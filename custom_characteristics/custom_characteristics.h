@@ -180,6 +180,17 @@
 .value = HOMEKIT_FLOAT_(_value), \
 ##__VA_ARGS__
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_TASK_STATS HOMEKIT_CUSTOM_UUID("F000000D")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_TASK_STATS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_TASK_STATS, \
+.description = "Debug Task Stats", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);

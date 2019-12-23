@@ -66,6 +66,10 @@ void on_wifi_ready ( void) ;
 void wifi_check_interval_set (homekit_value_t value);
 /* used to alter the interval of the Wifi Check≤ intervals of 10 seconds, 0 for no check */
 
+void task_stats_set (homekit_value_t value);
+/* turns on or off priting tasks stats */
+
+
 
 
 
