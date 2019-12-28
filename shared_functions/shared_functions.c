@@ -325,6 +325,7 @@ void on_homekit_event(homekit_event_t event) {
 void on_wifi_ready ( void) {
     
     printf("on_wifi_ready\n");
+    get_sysparam_info();
     reset_information = sdk_system_get_rst_info();
     switch (reset_information->reason){
         case DEFAULT_RST:
