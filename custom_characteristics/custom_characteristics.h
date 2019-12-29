@@ -131,7 +131,7 @@
 
 #define HOMEKIT_CHARACTERISTIC_CUSTOM_GREEN_GPIO HOMEKIT_CUSTOM_UUID_DBB("F0000009")
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_GREEN_GPIO(_value, ...) .type = HOMEKIT_CHARACTERISTIC_CUSTOM_GREEN_GPIO, \
-.description = "GREN GPIO", \
+.description = "GREEN GPIO", \
 .format = homekit_format_uint8, \
 .permissions = homekit_permissions_paired_read \
 | homekit_permissions_paired_write \
