@@ -16,11 +16,12 @@
 
 void save_characteristics ( ){
     
-    printf ("%s", __func__);
+    printf ("%s:\n", __func__);
     save_characteristic_to_flash(&on, on.value);
     save_characteristic_to_flash(&saturation, saturation.value);
     save_characteristic_to_flash(&hue, hue.value);
     save_characteristic_to_flash(&brightness, brightness.value);
+    save_characteristic_to_flash(&wifi_check_interval, wifi_check_interval.value);
     
 }
 
@@ -101,20 +102,20 @@ void rgbw_set (){
         
         RBGtoRBGW (&target_color);
         printf("%s: h=%d,s=%d,b=%d => r=%d,g=%d, b=%d, w=%d,\n",__func__, (int)led_hue,(int)led_saturation,(int)led_brightness, target_color.red,target_color.green, target_color.blue, target_color.white );
-        
+        printf ("%s: GPIOS are set as follows : W=%d, R=%d, G=%d, B=%d\n",__func__, white_gpio.value.int_value,red_gpio.value.int_value, green_gpio.value.int_value, blue_gpio.value.int_value );
         current_color.red = target_color.red * PWM_SCALE;
         current_color.green = target_color.green * PWM_SCALE;
         current_color.blue = target_color.blue * PWM_SCALE;
         current_color.white = target_color.white * PWM_SCALE;
         
-        printf ("%s: Stopping multipwm \n",__func__);
+        printf ("%s: Stopping multipwm\n",__func__);
         multipwm_stop(&pwm_info);
         multipwm_set_duty(&pwm_info, white_pin, current_color.white);
         multipwm_set_duty(&pwm_info, blue_pin, current_color.blue);
         multipwm_set_duty(&pwm_info, green_pin, current_color.green);
         multipwm_set_duty(&pwm_info, red_pin, current_color.red);
         multipwm_start(&pwm_info);
-        printf ("%s: Starting multipwm \n\n",__func__);
+        printf ("%s: Starting multipwm\n",__func__);
         
     } else {
         printf("%s: led srtip off\n", __func__);
@@ -136,6 +137,7 @@ void led_on_set(homekit_value_t value) {
         return;
     }
     
+    on.value.bool_value = value.bool_value;
     led_on = value.bool_value;
     if (led_on == false )
     {
@@ -147,7 +149,8 @@ void led_on_set(homekit_value_t value) {
         printf ("%s: Led on TRUE so setting colour\n", __func__);
         sdk_os_timer_arm (&rgbw_set_timer, RGBW_STRIP_SET_DELAY, 0 );
     }
-    
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
+
 }
 
 homekit_value_t led_brightness_get() {
@@ -159,9 +162,12 @@ void led_brightness_set(homekit_value_t value) {
         printf("%s: Invalid brightness-value format: %d\n", __func__, value.format);
         return;
     }
+    brightness.value.int_value = value.int_value;
     led_brightness = value.int_value;
     printf ("%s: timer armed, Brightness: %f\n", __func__, led_brightness);
     sdk_os_timer_arm (&rgbw_set_timer, RGBW_STRIP_SET_DELAY, 0 );
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
+
 }
 
 homekit_value_t led_hue_get() {
@@ -173,10 +179,11 @@ void led_hue_set(homekit_value_t value) {
         printf("%s: Invalid hue-value format: %d\n", __func__, value.format);
         return;
     }
+    hue.value.int_value = value.int_value;
     led_hue = value.float_value;
     printf ("%s: timer armed, HUE: %f\n", __func__, led_hue);
     sdk_os_timer_arm (&rgbw_set_timer, RGBW_STRIP_SET_DELAY, 0 );
-    
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
 }
 
 homekit_value_t led_saturation_get() {
@@ -188,9 +195,12 @@ void led_saturation_set(homekit_value_t value) {
         printf("%s: Invalid sat-value format: %d\n", __func__, value.format);
         return;
     }
+    saturation.value.int_value = value.int_value;
     led_saturation = value.float_value;
     printf ("%s: timer armed, Saturation: %f\n", __func__, led_saturation);
     sdk_os_timer_arm (&rgbw_set_timer, RGBW_STRIP_SET_DELAY, 0 );
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
+
 }
 
 
@@ -221,7 +231,8 @@ void rgbw_lights_init() {
     
     sdk_os_timer_setfn(&rgbw_set_timer, rgbw_set, NULL);
     sdk_os_timer_setfn(&gpio_timer, gpio_update_set, NULL);
-    
+    sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
+
     printf ("%s: sdk_os_timer_Setfn called\n", __func__);
     
 }

@@ -28,10 +28,10 @@ void get_sysparam_info() {
     
     sysparam_get_info(&base_addr, &num_sectors);
     
-    printf ("get_sysparam_info - Sysparam base address %i, num_sectors %i\n", base_addr, num_sectors);
+    printf ("%s: Sysparam base address %i, num_sectors %i\n", __func__, base_addr, num_sectors);
     sysparam_status = sysparam_iter_start (&sysparam_iter);
     if (sysparam_status != 0){
-        printf("get_sysparam_info - iter_start status %d\n",sysparam_status);
+        printf("%s: iter_start status %d\n",__func__, sysparam_status);
     }
     while (sysparam_status==0){
         sysparam_status = sysparam_iter_next (&sysparam_iter);
@@ -39,24 +39,24 @@ void get_sysparam_info() {
             if (!sysparam_iter.binary)
                 if (strncmp(sysparam_iter.key,"wifi_password", 13 ) == 0) {
                     if (strlen ((char *)sysparam_iter.value) == 0){
-                        printf("get_sysparam_info - sysparam name: %s, value: blank\n", sysparam_iter.key);
+                        printf("%s: sysparam name: %s, value: blank\n", __func__, sysparam_iter.key);
                     } else {
-                        printf("get_sysparam_info - sysparam name: %s, value:%s\n", sysparam_iter.key,"**********");
+                        printf("%s: sysparam name: %s, value:%s\n", __func__, sysparam_iter.key,"**********");
                     }
                 } else {
-                    printf("get_sysparam_info - sysparam name: %s, value:%s, key length:%d, value length:%d\n", sysparam_iter.key, (char *)sysparam_iter.value, sysparam_iter.key_len, sysparam_iter.value_len);
+                    printf("%s: sysparam name: %s, value:%s, key length:%d, value length:%d\n", __func__, sysparam_iter.key, (char *)sysparam_iter.value, sysparam_iter.key_len, sysparam_iter.value_len);
                 }
                 else
                     print_binary_value(sysparam_iter.key, sysparam_iter.value, sysparam_iter.value_len);
         } else {
-            printf("get_sysparam_info - while loop status %d\n",sysparam_status);
+            printf("%s: while loop status %d\n",__func__, sysparam_status);
             
         }
     }
     sysparam_iter_end (&sysparam_iter);
     if (sysparam_status != SYSPARAM_NOTFOUND) {
         //   SYSPARAM_NOTFOUND is the normal status when we've reached the end of all entries.
-        printf ("get_sysparam_info - sysparam iter_end error:%d\n", sysparam_status);
+        printf ("%s: sysparam iter_end error:%d\n", __func__, sysparam_status);
     }
 }
 
@@ -71,7 +71,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
     float float_value;
     char *string_value=NULL;    
 
-    printf ("Save characteristic to flash %s:",ch->description);
+    printf ("%s: %s: ",__func__, ch->description);
     switch (ch->format) {
         case homekit_format_bool:
             printf ("writing bool value to flash %s\n", ch->value.bool_value ? "true" : "false");
@@ -80,7 +80,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
                 status = sysparam_set_bool(ch->description, ch->value.bool_value);
             } else if (status == SYSPARAM_NOTFOUND) {
                 status = sysparam_set_bool(ch->description, ch->value.bool_value);
-            }
+            } 
             break;
         case homekit_format_uint8:
             printf ("writing int8 value to flash %d\n", ch->value.int_value);
@@ -91,6 +91,7 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
                 status = sysparam_set_int8(ch->description, ch->value.int_value);
             }
             break;
+        case homekit_format_int:
         case homekit_format_uint16:
         case homekit_format_uint32:
             printf ("writing int32 value to flash %d\n",  ch->value.int_value);
@@ -116,21 +117,20 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
             status = sysparam_get_int32(ch->description, &int32_value);
             float_value = int32_value * 1.00f / 100;
             if (status == SYSPARAM_OK && float_value != ch->value.float_value) {
-		int32_value = (int)ch->value.float_value*100;
-		status = sysparam_set_int32(ch->description, int32_value);
+                int32_value = (int)ch->value.float_value*100;
+                status = sysparam_set_int32(ch->description, int32_value);
             } else if (status == SYSPARAM_NOTFOUND) {
-		int32_value = (int)ch->value.float_value*100;
+                int32_value = (int)ch->value.float_value*100;
                 status = sysparam_set_int32(ch->description, int32_value);
             }
-	    break;
+            break;
         case homekit_format_uint64:
-        case homekit_format_int:
         case homekit_format_tlv:
         default:
-            printf ("Unknown characteristic format in save_charactersitics_to_flash\n");
+            printf ("Unknown characteristic format\n");
     }
     if (status != SYSPARAM_OK){
-        printf ("Error in sysparams error:%i writing characteristic\n", status);
+        printf ("%s: Error in sysparams error:%i\n", __func__, status);
     }
     
 }
@@ -143,7 +143,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
     int8_t int8_value;
     int32_t int32_value;
     char *string_value = NULL;
-    printf ("Loading sysparam: %s: ",ch->description);
+    printf ("%s: %s: ",__func__, ch->description);
     switch (ch->format){
         case homekit_format_bool:
             printf("bool: ");
@@ -161,7 +161,22 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
                 printf("%d\n", ch->value.int_value);
             }
             break;
+        case homekit_format_int:
+            printf("int: ");
+            status = sysparam_get_int32(ch->description, &int32_value);
+            if (status == SYSPARAM_OK ) {
+                ch->value.int_value = (int)int32_value;
+                printf("%d\n", ch->value.int_value);
+            }
+            break;
         case homekit_format_uint16:
+            printf("in36: ");
+            status = sysparam_get_int32(ch->description, &int32_value);
+            if (status == SYSPARAM_OK ) {
+                ch->value.int_value = (uint16_t)int32_value;
+                printf("%d\n", ch->value.int_value);
+            }
+            break;
         case homekit_format_uint32:
             printf("in32: ");
             status = sysparam_get_int32(ch->description, &int32_value);
@@ -187,13 +202,12 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
                 }
             break;
         case homekit_format_uint64:
-        case homekit_format_int:
         case homekit_format_tlv:
         default:
-            printf ("Unknown characteristic format in save_charactersitics_to_flash\n");
+            printf ("%s: Unknown characteristic format\n", __func__);
     }
     if (status != SYSPARAM_OK){
-        printf ("Error in sysparams error:%i loading characteristic\n", status);
+        printf ("%s: Error in sysparams error:%i loading characteristic\n", __func__, status);
     }
     
     

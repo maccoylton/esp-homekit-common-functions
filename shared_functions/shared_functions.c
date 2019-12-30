@@ -111,11 +111,12 @@ void task_stats_set (homekit_value_t value) {
     
 }
 
+
 void wifi_check_interval_set (homekit_value_t value){
     
     wifi_check_interval.value.int_value = value.int_value;
-    save_characteristic_to_flash (&wifi_check_interval, wifi_check_interval.value);
     printf ("%s Wifi Check Interval: %d\n", __func__, wifi_check_interval.value.int_value);
+    sdk_os_timer_disarm (&save_timer );
     
 }
 
@@ -331,17 +332,23 @@ void on_wifi_ready ( void) {
     switch (reset_information->reason){
         case DEFAULT_RST:
             printf ("%s Reset Reason: Default Reset\n", __func__);
+            break;
         case WDT_RST:
             printf ("%s Reset Reason: Whatchdog Rest\n", __func__);
+            recover_from_reset (reset_information->reason);
+            break;
         case EXCEPTION_RST:
             printf ("%s Reset Reason: Excepton Rest\n", __func__);
             recover_from_reset (reset_information->reason);
+            break;
         case SOFT_RST:
-            printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__, reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+            printf ("%s Reset Reason: Soft Reeet\n", __func__);
             break;
         default:
-            printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__,  reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+            printf ("%s Reset Reason: Unknown\n", __func__);
+            
     }
+    printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__,  reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
     homekit_server_init(&config);
     
 }
