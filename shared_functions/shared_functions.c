@@ -13,6 +13,7 @@
 
 bool accessory_paired = false;
 TaskHandle_t task_stats_task_handle = NULL;
+ETSTimer save_timer;
 
 
 bool wifi_connected;
@@ -328,13 +329,17 @@ void on_wifi_ready ( void) {
     reset_information = sdk_system_get_rst_info();
     switch (reset_information->reason){
         case DEFAULT_RST:
+            printf ("%s Reset Reason: Default Reset\n", __func__);
         case WDT_RST:
+            printf ("%s Reset Reason: Whatchdog Rest\n", __func__);
         case EXCEPTION_RST:
+            printf ("%s Reset Reason: Excepton Rest\n", __func__);
+            recover_from_reset (reset_information->reason);
         case SOFT_RST:
-            printf ("%s Reset Reason: %d\nException Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__, reset_information->reason, reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+            printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__, reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
             break;
         default:
-            printf ("%s Unknown Reset Reason: %d\nException Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__, reset_information->reason, reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+            printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__,  reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
     }
     homekit_server_init(&config);
     
@@ -362,6 +367,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     
     xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, NULL);
 
-        
-    
+    sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
+
 }
+

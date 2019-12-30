@@ -2,11 +2,17 @@
 shared functions used all accessorys
 
 */
+
+
+#ifndef SHARED_FUNCTIONS_H
+#define SHARED_FUNCTIONS_H
+
 #include <stdio.h>
 #include <homekit/homekit.h>
 #include <espressif/esp_wifi.h>
 #include <espressif/esp_sta.h>
 #include <espressif/esp_common.h>
+#include <esplibs/libmain.h>
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
 #include <led_codes.h>
@@ -24,6 +30,8 @@ extern bool accessory_paired;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
 struct sdk_rst_info* reset_information;
+
+extern ETSTimer save_timer;
 
 
 void accessory_init(void);
@@ -69,7 +77,10 @@ void wifi_check_interval_set (homekit_value_t value);
 void task_stats_set (homekit_value_t value);
 /* turns on or off priting tasks stats */
 
+void recover_from_reset (int reason);
+/* called if we restarted abnormally */
 
+void save_characteristics (  );
+/* called by a timer function to save charactersitics */
 
-
-
+#endif
