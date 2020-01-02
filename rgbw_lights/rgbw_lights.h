@@ -16,8 +16,16 @@
 #define RGBW_LIGHTS_H
 
 #define PWM_SCALE 255
-#define RGBW_STRIP_SET_DELAY 100
+#define RGBW_SET_DELAY 10
 #define SAVE_DELAY 5000
+#define EFFECT_DELAY 500
+#define COLOUR_MAX 65280
+#define STROBE_DELAY 50
+#define FIVE_HUNDRED_MS 500
+#define FIFTY_MS 50
+#define TEN_MS 10
+#define ONE_S 1000
+
 
 #include <stdio.h>
 #include <espressif/esp_wifi.h>
@@ -45,6 +53,7 @@
 
 
 enum {white_pin=0, blue_pin=1, green_pin=2, red_pin=3} led_pins;
+enum {cycle_effect, strobe_effect, flash_effect, fade_effect, smooth_effect, off_effect} effects_e;
 
 static pwm_info_t pwm_info;
 ETSTimer rgbw_set_timer;
@@ -55,6 +64,7 @@ extern float led_hue;              // hue is scaled 0 to 360
 extern float led_saturation;      // saturation is scaled 0 to 100
 extern float led_brightness;     // brightness is scaled 0 to 100
 extern bool led_on;            // on is boolean on or off
+extern int previous_colour_effect;
 
 extern int white_default_gpio;
 extern int red_default_gpio;
@@ -73,6 +83,11 @@ extern homekit_characteristic_t green_gpio;
 extern homekit_characteristic_t blue_gpio;
 extern homekit_characteristic_t white_gpio;
 
+extern homekit_characteristic_t colours_gpio_test;
+extern homekit_characteristic_t colours_strobe;
+extern homekit_characteristic_t colours_flash;
+extern homekit_characteristic_t colours_fade;
+extern homekit_characteristic_t colours_smooth;
 
 void on_update(homekit_characteristic_t *ch, homekit_value_t value, void *context);
 
@@ -97,5 +112,31 @@ void rgbw_set ();
 void gpio_update_set();
 
 void rgbw_lights_init();
+
+void colours_gpio_test_set (homekit_value_t value);
+
+void colours_strobe_set (homekit_value_t value);
+
+void colours_flash_set (homekit_value_t value);
+
+void colours_fade_set (homekit_value_t value);
+
+void colours_smooth_set (homekit_value_t value);
+
+void colour_effect_start_stop (int effect);
+
+homekit_value_t colours_gpio_test_get ( );
+
+homekit_value_t colours_strobe_get ( );
+
+homekit_value_t colours_flash_get ( );
+
+homekit_value_t colours_fade_get ( );
+
+homekit_value_t colours_smooth_get ( );
+
+void colour_effect_reset ();
+
+void set_colours (uint16_t red_colour, uint16_t green_colour, uint16_t blue_colour, uint16_t white_colour);
 
 #endif

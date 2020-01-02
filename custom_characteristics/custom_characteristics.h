@@ -191,6 +191,65 @@
 .value = HOMEKIT_BOOL_(_value), \
 ##__VA_ARGS__
 
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_GPIO_TEST HOMEKIT_CUSTOM_UUID("F000000E")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_COLOURS_GPIO_TEST(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_GPIO_TEST, \
+.description = "Test Colour GPIOs", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_STROBE HOMEKIT_CUSTOM_UUID("F0000010")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_COLOURS_STROBE(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_STROBE, \
+.description = "Strobe Effect", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_FLASH HOMEKIT_CUSTOM_UUID("F0000011")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_COLOURS_FLASH(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_FLASH, \
+.description = "Flash Effect", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_FADE HOMEKIT_CUSTOM_UUID("F0000012")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_COLOURS_FADE(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_FADE, \
+.description = "Fade Effect", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_SMOOTH HOMEKIT_CUSTOM_UUID("F0000013")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_COLOURS_SMOOTH(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_COLOURS_SMOOTH, \
+.description = "Smooth Effect", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
