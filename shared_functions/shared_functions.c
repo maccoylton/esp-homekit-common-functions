@@ -8,11 +8,14 @@
 #include <shared_functions.h>
 
 #define CHECK_INTERVAL 30000
+#define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
+#define TASK_STATS_INTERVAL 50000
 #define WIFI_ISSUE                  (blinking_params_t){10,0}
 
 
 bool accessory_paired = false;
 TaskHandle_t task_stats_task_handle = NULL;
+TaskHandle_t wifi_check_interval_task_handle = NULL;
 ETSTimer save_timer;
 
 
@@ -24,8 +27,6 @@ void task_stats_task ( void *args)
     TaskStatus_t *pxTaskStatusArray;
     UBaseType_t uxArraySize, x;
     uint32_t ulTotalRunTime;
-    unsigned long ulStatsAsPercentage;
-    
     
     printf ("%s", __func__);
     
@@ -57,13 +58,7 @@ void task_stats_task ( void *args)
              format the raw data as human readable ASCII data. */
             for( x = 0; x < uxArraySize; x++ )
             {
-                /* What percentage of the total run time has the task used?
-                 This will always be rounded down to the nearest integer.
-                 ulTotalRunTimeDiv100 has already been divided by 100. */
-                ulStatsAsPercentage =
-                pxTaskStatusArray[ x ].ulRunTimeCounter / ulTotalRunTime / 100;
-                
-                
+
                 printf ( "Name:%-20s,  Runtime Counter:%-3d, Current State:%-3d, Current Priority:%-5ld, Base Priority:%-5ld, High Water Mark (bytes) %-5d\n",
                         pxTaskStatusArray[ x ].pcTaskName,
                         pxTaskStatusArray[ x ].ulRunTimeCounter,
@@ -72,8 +67,6 @@ void task_stats_task ( void *args)
                         pxTaskStatusArray[ x ].uxBasePriority,
                         pxTaskStatusArray[x].usStackHighWaterMark);
                 
-                /*                printf ( " Runtime Percentage:%lu,",ulStatsAsPercentage);*/
-                
             }
             /*        }*/
             
@@ -81,13 +74,13 @@ void task_stats_task ( void *args)
             vPortFree( pxTaskStatusArray );
             printf ("%s, vPortFree\n", __func__);
         }
-        vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
+        vTaskDelay(TASK_STATS_INTERVAL/ portTICK_PERIOD_MS);
     }
     
 }
 
 void task_stats_set (homekit_value_t value) {
-   
+    
     printf("Task Stats\n");
     if (value.bool_value)
         {
@@ -105,20 +98,9 @@ void task_stats_set (homekit_value_t value) {
         } else {
             printf ("%s task_Status_set FALSE, but task pointer is NULL\n", __func__);
         }
-
-        
     }
-    
 }
 
-
-void wifi_check_interval_set (homekit_value_t value){
-    
-    wifi_check_interval.value.int_value = value.int_value;
-    printf ("%s Wifi Check Interval: %d\n", __func__, wifi_check_interval.value.int_value);
-    sdk_os_timer_disarm (&save_timer );
-    
-}
 
 void checkWifiTask(void *pvParameters)
 {
@@ -170,6 +152,31 @@ void checkWifiTask(void *pvParameters)
         
         vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
     }
+}
+
+
+
+void wifi_check_interval_set (homekit_value_t value){
+    
+    wifi_check_interval.value.int_value = value.int_value;
+    printf ("%s Wifi Check Interval: %d\n", __func__, wifi_check_interval.value.int_value);
+    if (wifi_check_interval.value.int_value==0){
+        /* check interval is 0 so make sure the task is not running */
+        if (wifi_check_interval_task_handle != NULL)
+        {
+            printf ("%s Stopping Task\n", __func__);
+            vTaskDelete(wifi_check_interval_task_handle);
+            wifi_check_interval_task_handle = NULL;
+        }
+    } else {
+        /* check interval > 0 so make sure the task is running */
+        if (wifi_check_interval_task_handle == NULL)
+        {
+            printf ("%s Starting Task\n", __func__);
+            xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
+        }
+    }
+    sdk_os_timer_arm (&save_timer, WIFI_CHECK_INTERVAL_SAVE_DELAY, 0);
 }
 
 
@@ -373,7 +380,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     if (c_hash==0) c_hash=1;
     config.accessories[0]->config_number=c_hash;
     
-    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, NULL);
+    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
 
     sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
 
