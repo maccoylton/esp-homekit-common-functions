@@ -62,7 +62,7 @@ void hsi2rgb(float h, float s, float i, rgb_color_t* rgbw) {
     i /= 100.0F;                        // from percentage to ratio
     s = s > 0 ? (s < 1 ? s : 1) : 0;    // clamp s and i to interval [0,1]
     i = i > 0 ? (i < 1 ? i : 1) : 0;    // clamp s and i to interval [0,1]
-    //i = i * sqrt(i);                    // shape intensity to have finer granularity near 0
+    i = i * sqrt(i);                    // shape intensity to have finer granularity near 0
     
     if (h < 2.09439) {
         cos_h = cos(h);
