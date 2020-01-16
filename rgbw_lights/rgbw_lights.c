@@ -350,6 +350,8 @@ void colours_pure_white_set (homekit_value_t value) {
     
     printf("%s:\n", __func__);
     pure_white.value.bool_value = value.bool_value;
+    sdk_os_timer_arm (&rgbw_set_timer, RGBW_SET_DELAY, 0 );
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
 }
 
 

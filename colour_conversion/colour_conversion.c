@@ -100,6 +100,7 @@ void hsi2rgb(float h, float s, float i, rgb_color_t* rgbw) {
 void RBGtoRBGW ( rgb_color_t* rgbw, bool pure_white){
     //Get the maximum between R, G, and B
     float colour_max = max (rgbw->red, max(rgbw->green, rgbw->blue));
+    int Ro, Go, Bo;
     
     //If the maximum value is 0, immediately return pure black.
     if(colour_max == 0)
@@ -121,14 +122,14 @@ void RBGtoRBGW ( rgb_color_t* rgbw, bool pure_white){
         //Calculate the output values
         int Wo = (int)(Luminance);
         if (pure_white==true){
-            int Bo = (int)(rgbw->blue - Luminance);
-            int Ro = (int)(rgbw->red - Luminance);
-            int Go = (int)(rgbw->green - Luminance);
+            Bo = (int)(rgbw->blue - Luminance);
+            Ro = (int)(rgbw->red - Luminance);
+            Go = (int)(rgbw->green - Luminance);
+        } else {
+            Bo = (int)(rgbw->blue);
+            Ro = (int)(rgbw->red);
+            Go = (int)(rgbw->green);
         }
-        int Bo = (int)(rgbw->blue);
-        int Ro = (int)(rgbw->red);
-        int Go = (int)(rgbw->green);
-        
         
         //Trim them so that they are all between 0 and 255
         if (Wo < 0) Wo = 0;
