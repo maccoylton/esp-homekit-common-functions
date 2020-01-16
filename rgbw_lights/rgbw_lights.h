@@ -24,6 +24,7 @@
 #define FIVE_HUNDRED_MS 500
 #define FIFTY_MS 50
 #define TEN_MS 10
+#define TWENTY_MS 20
 #define ONE_S 1000
 
 

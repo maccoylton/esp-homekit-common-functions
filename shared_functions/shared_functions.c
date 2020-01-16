@@ -145,12 +145,17 @@ void checkWifiTask(void *pvParameters)
         }
         else {
             printf("\n%s : no check performed ", __func__);
-
+            
         }
         printf ("Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)/4);
         /*uxTaskGetStackHighWaterMark returns a number in bytes, stack is created in words, so device by 4 to get nujber of words left on stack */
         
-        vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
+        
+        if ( wifi_check_interval.value.int_value==0) {
+            vTaskDelay((10000) / portTICK_PERIOD_MS);
+        } else {
+            vTaskDelay((1000*wifi_check_interval.value.int_value) / portTICK_PERIOD_MS);
+        }
     }
 }
 
@@ -380,8 +385,9 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     if (c_hash==0) c_hash=1;
     config.accessories[0]->config_number=c_hash;
     
-    xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
-
+    if (wifi_check_interval.value.int_value!=0){
+        xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
+    }
     sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
 
 }
