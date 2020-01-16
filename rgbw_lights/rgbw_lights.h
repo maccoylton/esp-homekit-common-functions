@@ -88,6 +88,7 @@ extern homekit_characteristic_t colours_strobe;
 extern homekit_characteristic_t colours_flash;
 extern homekit_characteristic_t colours_fade;
 extern homekit_characteristic_t colours_smooth;
+extern homekit_characteristic_t pure_white;
 
 void on_update(homekit_characteristic_t *ch, homekit_value_t value, void *context);
 
@@ -138,5 +139,8 @@ homekit_value_t colours_smooth_get ( );
 void colour_effect_reset ();
 
 void set_colours (uint16_t red_colour, uint16_t green_colour, uint16_t blue_colour, uint16_t white_colour);
+
+void colours_pure_white_set (homekit_value_t value);
+
 
 #endif
