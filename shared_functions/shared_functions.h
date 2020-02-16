@@ -23,6 +23,7 @@ shared functions used all accessorys
 #include <custom_characteristics.h>
 #include <esp/uart.h>
 #include <ota-api.h>
+#include <rboot-api.h>
 
 
 extern const int status_led_gpio;
@@ -32,7 +33,7 @@ extern homekit_characteristic_t wifi_check_interval;
 extern homekit_characteristic_t ota_beta;
 extern homekit_characteristic_t user_beta;
 struct sdk_rst_info* reset_information;
-
+extern int power_cycle_count;
 extern ETSTimer save_timer;
 
 
@@ -90,5 +91,8 @@ void ota_beta_set ( homekit_value_t value);
 
 void user_beta_set ( homekit_value_t value);
 /* called to set the user_beta flag */
+
+void wifi_check_stop_start (int interval);
+/* called to set the wifi check taks runing or stop it if the value passed is 0 */
 
 #endif

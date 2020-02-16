@@ -38,6 +38,6 @@ void hsi2rgbw(float h, float s, float i, rgb_color_t* rgbw);
 
 void  HSVtoRGB(float h, float s,  float  v, rgb_color_t* rgbw) ;
 
-void RBGtoRBGW ( rgb_color_t* rgbw);
+void RBGtoRBGW ( rgb_color_t* rgbw, bool pure_white);
 
 

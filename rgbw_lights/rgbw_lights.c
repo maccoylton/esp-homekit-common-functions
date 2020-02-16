@@ -26,6 +26,7 @@ void save_characteristics ( ){
     save_characteristic_to_flash(&hue, hue.value);
     save_characteristic_to_flash(&brightness, brightness.value);
     save_characteristic_to_flash(&wifi_check_interval, wifi_check_interval.value);
+    save_characteristic_to_flash(&pure_white, pure_white.value);
 }
 
 IRAM void set_colours (uint16_t red_colour, uint16_t green_colour, uint16_t blue_colour, uint16_t white_colour){
@@ -345,6 +346,15 @@ void colours_smooth_set (homekit_value_t value) {
 }
 
 
+void colours_pure_white_set (homekit_value_t value) {
+    
+    printf("%s:\n", __func__);
+    pure_white.value.bool_value = value.bool_value;
+    sdk_os_timer_arm (&rgbw_set_timer, RGBW_SET_DELAY, 0 );
+    sdk_os_timer_arm (&save_timer, SAVE_DELAY, 0 );
+}
+
+
 void update_pins_and_save (homekit_characteristic_t* r_gpio, homekit_characteristic_t* g_gpio, homekit_characteristic_t* b_gpio, homekit_characteristic_t* w_gpio,int r_pin, int g_pin, int b_pin, int w_pin) {
     
     if ( r_gpio->value.int_value != r_pin) {
@@ -424,7 +434,7 @@ void rgbw_set(){
         HSVtoRGB(led_hue, led_saturation, led_brightness, &target_color);
         printf("%s: h=%d,s=%d,b=%d => r=%d,g=%d, b=%d\n",__func__, (int)led_hue,(int)led_saturation,(int)led_brightness, target_color.red,target_color.green, target_color.blue );
         
-        RBGtoRBGW (&target_color);
+        RBGtoRBGW (&target_color, pure_white.value.bool_value);
         printf("%s: h=%d,s=%d,b=%d => r=%d,g=%d, b=%d, w=%d,\n",__func__, (int)led_hue,(int)led_saturation,(int)led_brightness, target_color.red,target_color.green, target_color.blue, target_color.white );
         printf ("%s: GPIOS are set as follows : W=%d, R=%d, G=%d, B=%d\n",__func__, white_gpio.value.int_value,red_gpio.value.int_value, green_gpio.value.int_value, blue_gpio.value.int_value );
         current_color.red = target_color.red * PWM_SCALE;
@@ -543,6 +553,7 @@ void rgbw_lights_init() {
     load_characteristic_from_flash(&saturation);
     load_characteristic_from_flash(&hue);
     load_characteristic_from_flash(&brightness);
+    load_characteristic_from_flash(&pure_white);
     
     led_hue = hue.value.float_value;
     led_saturation = saturation.value.float_value;
