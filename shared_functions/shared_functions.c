@@ -192,6 +192,25 @@ void wifi_reset_set(homekit_value_t value){
     sdk_system_restart();
 }
 
+
+void ota_beta_set ( homekit_value_t value){
+    printf("%s:\n", __func__);
+    ota_beta.value.bool_value = value.bool_value;
+    save_characteristic_to_flash(&ota_beta, ota_beta.value );
+    printf("%s: Restarting\n", __func__);
+    sdk_system_restart();
+}
+
+
+void user_beta_set ( homekit_value_t value){
+    printf("%s:\n", __func__);
+    user_beta.value.bool_value = value.bool_value;
+    save_characteristic_to_flash(&user_beta, user_beta.value );
+    printf("%s: Restarting\n", __func__);
+    sdk_system_restart();
+}
+
+
 void identify_task(void *_args) {
     // We identify the Device by Flashing it's LED.
     led_code( status_led_gpio, IDENTIFY_ACCESSORY);
@@ -377,6 +396,9 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     get_sysparam_info();
     
     load_characteristic_from_flash (&wifi_check_interval);
+    load_characteristic_from_flash (&ota_beta);
+    load_characteristic_from_flash (&user_beta);
+    
     
     create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
     

@@ -29,6 +29,8 @@ extern const int status_led_gpio;
 extern bool accessory_paired;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
+extern homekit_characteristic_t ota_beta;
+extern homekit_characteristic_t user_beta;
 struct sdk_rst_info* reset_information;
 
 extern ETSTimer save_timer;
@@ -82,5 +84,11 @@ void recover_from_reset (int reason);
 
 void save_characteristics (  );
 /* called by a timer function to save charactersitics */
+
+void ota_beta_set ( homekit_value_t value);
+/* called to set the ota_beta flag */
+
+void user_beta_set ( homekit_value_t value);
+/* called to set the user_beta flag */
 
 #endif
