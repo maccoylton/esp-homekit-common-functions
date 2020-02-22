@@ -274,10 +274,10 @@
 ##__VA_ARGS__
 
 
-#define HOMEKIT_CHARACTERISTIC_CUSTOM_USER_BETA HOMEKIT_CUSTOM_UUID("F0000016")
-#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_USER_BETA(_value, ...) \
-.type = HOMEKIT_CHARACTERISTIC_CUSTOM_USER_BETA, \
-.description = "user_beta", \
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LCM_BETA HOMEKIT_CUSTOM_UUID("F0000016")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LCM_BETA(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_LCM_BETA, \
+.description = "lcm_beta", \
 .format = homekit_format_bool, \
 .permissions = homekit_permissions_paired_read \
 | homekit_permissions_paired_write \

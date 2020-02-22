@@ -207,10 +207,10 @@ void ota_beta_set ( homekit_value_t value){
 }
 
 
-void user_beta_set ( homekit_value_t value){
+void lcm_beta_set ( homekit_value_t value){
     printf("%s:\n", __func__);
-    user_beta.value.bool_value = value.bool_value;
-    save_characteristic_to_flash(&user_beta, user_beta.value );
+    lcm_beta.value.bool_value = value.bool_value;
+    save_characteristic_to_flash(&lcm_beta, lcm_beta.value );
     printf("%s: Restarting\n", __func__);
     sdk_system_restart();
 }
@@ -412,7 +412,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
-    load_characteristic_from_flash (&user_beta);
+    load_characteristic_from_flash (&lcm_beta);
     
     
     create_accessory_name(name->value.string_value, model->value.string_value, name, serial);

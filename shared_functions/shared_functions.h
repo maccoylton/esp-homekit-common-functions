@@ -31,7 +31,7 @@ extern bool accessory_paired;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
 extern homekit_characteristic_t ota_beta;
-extern homekit_characteristic_t user_beta;
+extern homekit_characteristic_t lcm_beta;
 struct sdk_rst_info* reset_information;
 extern int power_cycle_count;
 extern ETSTimer save_timer;
@@ -89,8 +89,8 @@ void save_characteristics (  );
 void ota_beta_set ( homekit_value_t value);
 /* called to set the ota_beta flag */
 
-void user_beta_set ( homekit_value_t value);
-/* called to set the user_beta flag */
+void lcm_beta_set ( homekit_value_t value);
+/* called to set the lcm_beta flag */
 
 void wifi_check_stop_start (int interval);
 /* called to set the wifi check taks runing or stop it if the value passed is 0 */
