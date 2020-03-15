@@ -285,6 +285,49 @@
 .value = HOMEKIT_BOOL_(_value), \
 ##__VA_ARGS__
 
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_WATTS HOMEKIT_CUSTOM_UUID("F0000017")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_WATTS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_WATTS, \
+.description = "WATTS", \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {3120}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT16_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_VOLTS HOMEKIT_CUSTOM_UUID("F0000018")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_VOLTS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_VOLTS, \
+.description = "VOLTS", \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {240}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT16_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_AMPS HOMEKIT_CUSTOM_UUID("F0000019")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_AMPS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_AMPS, \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {13}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT16_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
