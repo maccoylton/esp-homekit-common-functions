@@ -292,7 +292,6 @@
 .description = "WATTS", \
 .format = homekit_format_uint16, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {3120}, \
@@ -307,7 +306,6 @@
 .description = "VOLTS", \
 .format = homekit_format_uint16, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {240}, \
@@ -318,9 +316,9 @@
 #define HOMEKIT_CHARACTERISTIC_CUSTOM_AMPS HOMEKIT_CUSTOM_UUID("F0000019")
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_AMPS(_value, ...) \
 .type = HOMEKIT_CHARACTERISTIC_CUSTOM_AMPS, \
+.description = "AMPS", \
 .format = homekit_format_uint16, \
 .permissions = homekit_permissions_paired_read \
-| homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {13}, \

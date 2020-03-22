@@ -22,6 +22,52 @@ int power_cycle_count = 0;
 bool wifi_connected;
 
 
+
+void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
+    
+    printf ("%s: %s: ",__func__, ch->description);
+    switch (ch->format) {
+        case homekit_format_bool:
+            break;
+        case homekit_format_uint8:
+            printf ("%s: Checking integer bounds\n",__func__);
+            if (ch->value.int_value > *ch->max_value){
+                ch->value.int_value = *ch->max_value;
+            }
+            if (ch->value.int_value < *ch->min_value){
+                ch->value.int_value = *ch->min_value;
+            }
+            break;
+        case homekit_format_int:
+        case homekit_format_uint16:
+        case homekit_format_uint32:
+            printf ("%s: Checking integer bounds\n",__func__);
+            if (ch->value.int_value > *ch->max_value){
+                ch->value.int_value = *ch->max_value;
+            }
+            if (ch->value.int_value < *ch->min_value){
+                ch->value.int_value = *ch->min_value;
+            }
+            break;
+        case homekit_format_string:
+            break;
+        case homekit_format_float:
+            printf ("%s: Checking float bounds\n",__func__);
+            if (ch->value.float_value > *ch->max_value){
+                ch->value.float_value = *ch->max_value;
+            }
+            if (ch->value.float_value < *ch->min_value){
+                ch->value.float_value = *ch->min_value;
+            }
+            break;
+            break;
+        case homekit_format_uint64:
+        case homekit_format_tlv:
+        default:
+            printf ("%s: Unknown characteristic format\n", __func__);
+    }
+}
+
 void task_stats_task ( void *args)
 {
     TaskStatus_t *pxTaskStatusArray;
@@ -318,6 +364,7 @@ void on_homekit_event(homekit_event_t event) {
                 printf("on_homekit_event: Acessory is paired on initialisation, Free Heap=%d\n", xPortGetFreeHeapSize());
                 accessory_init ();
                 led_code( status_led_gpio, WIFI_CONNECTED);
+                wifi_check_stop_start (wifi_check_interval.value.int_value);
             }
             else
             {
@@ -325,6 +372,7 @@ void on_homekit_event(homekit_event_t event) {
                 accessory_paired = false;
                 /* stop wifi check to reduce interference with pairing*/
                 accessory_init_not_paired ();
+                wifi_check_stop_start (0);
             }
             break;
         case HOMEKIT_EVENT_CLIENT_CONNECTED:
@@ -338,6 +386,7 @@ void on_homekit_event(homekit_event_t event) {
                 printf("on_homekit_event: Acessory is paired on after client validaiton\n");
                 accessory_init();
                 led_code( status_led_gpio, WIFI_CONNECTED);
+                wifi_check_stop_start (wifi_check_interval.value.int_value);
             }
             break;
         case HOMEKIT_EVENT_CLIENT_DISCONNECTED:
@@ -353,6 +402,7 @@ void on_homekit_event(homekit_event_t event) {
                 printf("on_homekit_event: no more pairings so restart\n");
                 accessory_paired = false;
                 sdk_system_restart();
+                wifi_check_stop_start (0);
             }
             break;
         default:
