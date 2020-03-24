@@ -61,6 +61,39 @@ void get_sysparam_info() {
 }
 
 
+void save_int32_param ( char *description, int32_t new_value){
+
+    sysparam_status_t status = SYSPARAM_OK;
+    int32_t current_value;
+    
+    status = sysparam_get_int32(description, &current_value);
+    if (status == SYSPARAM_OK && current_value != new_value) {
+        status = sysparam_set_int32(description, new_value);
+    } else  if (status == SYSPARAM_NOTFOUND) {
+        status = sysparam_set_int32(description, new_value);
+    }
+    
+}
+
+
+void save_float_param ( char *description, float new_float_value){
+    
+    sysparam_status_t status = SYSPARAM_OK;
+    int32_t current_value, new_value;
+    
+    new_value = (int) new_float_value*1000;
+    
+    status = sysparam_get_int32(description, &current_value);
+    
+    if (status == SYSPARAM_OK && current_value != new_value) {
+        status = sysparam_set_int32(description, new_value);
+    } else  if (status == SYSPARAM_NOTFOUND) {
+        status = sysparam_set_int32(description, new_value);
+    }
+    
+}
+
+
 
 void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t value){
     
@@ -133,6 +166,22 @@ void save_characteristic_to_flash(homekit_characteristic_t *ch, homekit_value_t 
         printf ("%s: Error in sysparams error:%i\n", __func__, status);
     }
     
+}
+
+
+
+
+void load_float_param ( char *description, float *new_float_value){
+    
+    sysparam_status_t status = SYSPARAM_OK;
+    int32_t int32_value;
+    
+    status = sysparam_get_int32(description, &int32_value);
+    
+    if (status == SYSPARAM_OK ) {
+        *new_float_value = int32_value * 1.0f /1000;
+        printf("%s: %f\n", __func__, *new_float_value);
+    }
 }
 
 void load_characteristic_from_flash (homekit_characteristic_t *ch){

@@ -317,14 +317,59 @@
 #define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_AMPS(_value, ...) \
 .type = HOMEKIT_CHARACTERISTIC_CUSTOM_AMPS, \
 .description = "AMPS", \
-.format = homekit_format_uint16, \
+.format = homekit_format_float, \
 .permissions = homekit_permissions_paired_read \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
 .max_value = (float[]) {13}, \
+.min_step = (float[]) {0.01}, \
+.value = HOMEKIT_FLOAT_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_POW HOMEKIT_CUSTOM_UUID("F000001A")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_CALIBRATE_POW(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_POW, \
+.description = "Calibrate POW", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_VOLTS HOMEKIT_CUSTOM_UUID("F000001B")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_CALIBRATE_VOLTS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_VOLTS, \
+.description = "Calibrate Volts", \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {1}, \
+.max_value = (float[]) {240}, \
 .min_step = (float[]) {1}, \
 .value = HOMEKIT_UINT16_(_value), \
 ##__VA_ARGS__
+
+
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_WATTS HOMEKIT_CUSTOM_UUID("F000001C")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_CALIBRATE_WATTS(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_CALIBRATE_WATTS, \
+.description = "Calibrate WATTS", \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {1}, \
+.max_value = (float[]) {3120}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT16_(_value), \
+##__VA_ARGS__
+
+
 
 #endif
 
@@ -333,4 +378,13 @@ void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t
 void load_characteristic_from_flash (homekit_characteristic_t *ch);
 
 void get_sysparam_info();
+
+void save_int32_param ( char *description, int32_t new_value);
+
+void save_float_param ( char *description, float new_float_value);
+
+void load_float_param ( char *description, float *new_float_value);
+
+
+
 
