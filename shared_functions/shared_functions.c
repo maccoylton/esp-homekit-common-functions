@@ -6,12 +6,13 @@
 
 
 #include <shared_functions.h>
+#include <lwip/api.h>
 
 #define CHECK_INTERVAL 30000
 #define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
 #define TASK_STATS_INTERVAL 50000
 #define WIFI_ISSUE                  (blinking_params_t){10,0}
-
+#define HOST "github.com"
 
 bool accessory_paired = false;
 TaskHandle_t task_stats_task_handle = NULL;
@@ -20,6 +21,30 @@ ETSTimer save_timer;
 int power_cycle_count = 0;
 
 bool wifi_connected;
+
+bool check_dns_connectivity() {
+
+/* check we really have network connectivity by doing a dns lookup,  possible return values  are:- 
+	ERR_OK: resolving succeeded 
+	ERR_MEM: memory error, try again later 
+	ERR_ARG: dns client not initialized or invalid hostname 
+	ERR_VAL: dns server response was invalid 
+*/
+
+    ip_addr_t target_ip;
+    int ret=0;
+
+    ret = netconn_gethostbyname(HOST, &target_ip);
+    switch (ret){
+	case ERR_OK: 
+		printf ("%s: DNS Lookup OK", __func__);
+		return true;
+		break;
+	default: 
+                printf ("%s: DNS Lookup failed, error: %d", __func__, ret);
+		return false;
+	}
+}
 
 
 
@@ -122,8 +147,8 @@ void task_stats_task ( void *args)
         }
         vTaskDelay(TASK_STATS_INTERVAL/ portTICK_PERIOD_MS);
     }
-    
 }
+
 
 void task_stats_set (homekit_value_t value) {
     
@@ -188,6 +213,10 @@ void checkWifiTask(void *pvParameters)
                     break;
                     
             }
+
+	   if (check_dns_connectivity()== false) {
+		led_code (status_led_gpio, WIFI_ISSUE);
+		}
         }
         else {
             printf("\n%s : no check performed, check interval: %d, accessory paired: %d", __func__, wifi_check_interval.value.int_value, accessory_paired);
