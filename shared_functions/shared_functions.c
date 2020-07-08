@@ -22,31 +22,6 @@ int power_cycle_count = 0;
 
 bool wifi_connected;
 
-bool check_dns_connectivity() {
-
-/* check we really have network connectivity by doing a dns lookup,  possible return values  are:- 
-	ERR_OK: resolving succeeded 
-	ERR_MEM: memory error, try again later 
-	ERR_ARG: dns client not initialized or invalid hostname 
-	ERR_VAL: dns server response was invalid 
-*/
-
-    ip_addr_t target_ip;
-    int ret=0;
-
-    ret = netconn_gethostbyname(HOST, &target_ip);
-    switch (ret){
-	case ERR_OK: 
-		printf ("%s: DNS Lookup OK", __func__);
-		return true;
-		break;
-	default: 
-                printf ("%s: DNS Lookup failed, error: %d", __func__, ret);
-		return false;
-	}
-}
-
-
 
 void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
     
@@ -178,7 +153,10 @@ void checkWifiTask(void *pvParameters)
     uint8_t status ;
     
     wifi_connected = false;
-    
+
+    ip_addr_t target_ip;
+    int ret=0;
+
     while (1)
     {
         if (wifi_check_interval.value.int_value != 0 && accessory_paired == true) {
@@ -214,9 +192,18 @@ void checkWifiTask(void *pvParameters)
                     
             }
 
-	   if (check_dns_connectivity()== false) {
-		led_code (status_led_gpio, WIFI_ISSUE);
-		}
+
+
+    	    ret = netconn_gethostbyname(HOST, &target_ip);
+    	    switch (ret){
+        	case ERR_OK:
+                	printf ("%s: DNS Lookup OK", __func__);
+                	break;
+        	default:
+                	printf ("%s: DNS Lookup failed, error: %d", __func__, ret);
+			led_code (status_led_gpio, WIFI_ISSUE);
+        	}
+
         }
         else {
             printf("\n%s : no check performed, check interval: %d, accessory paired: %d", __func__, wifi_check_interval.value.int_value, accessory_paired);
@@ -251,7 +238,7 @@ void wifi_check_stop_start (int interval)
         if (wifi_check_interval_task_handle == NULL)
         {
             printf ("%s Starting Task\n", __func__);
-            xTaskCreate (checkWifiTask, "Check WiFi Task", 256, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
+            xTaskCreate (checkWifiTask, "Check WiFi Task", 512, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
         }
     }
 }
