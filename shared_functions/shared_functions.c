@@ -152,15 +152,15 @@ void checkWifiTask(void *pvParameters)
     	    ret = netconn_gethostbyname(HOST, &dns_target_ip);
     	    switch (ret){
         	case ERR_OK:
-                	printf ("%s: DNS Lookup OK ", __func__);
+                	printf ("DNS Lookup OK ");
                     dns_error_count = 0;
                 	break;
         	default:
-                	printf ("%s: DNS Lookup failed, error: %d ", __func__, ret);
+                	printf ("DNS Lookup failed, error: %d ", ret);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     dns_error_count++;
                     if (dns_error_count > DNS_CHECK_MAX_RETRIES){
-                        printf ("%s: DNS check max retries exceeded restarting accessory\n", __func__);
+                        printf ("DNS check max retries exceeded restarting accessory\n");
                         save_characteristics();
                         sdk_system_restart();
                     }
