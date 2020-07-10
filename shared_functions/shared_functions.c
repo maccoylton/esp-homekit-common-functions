@@ -13,6 +13,7 @@
 #define TASK_STATS_INTERVAL 50000
 #define WIFI_ISSUE                  (blinking_params_t){10,0}
 #define HOST "github.com"
+#define DNS_CHECK_MAX_RETRIES 12
 
 bool accessory_paired = false;
 TaskHandle_t task_stats_task_handle = NULL;
@@ -22,51 +23,6 @@ int power_cycle_count = 0;
 
 bool wifi_connected;
 
-
-void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
-    
-    printf ("%s: %s: ",__func__, ch->description);
-    switch (ch->format) {
-        case homekit_format_bool:
-            break;
-        case homekit_format_uint8:
-            printf ("%s: Checking integer bounds\n",__func__);
-            if (ch->value.int_value > *ch->max_value){
-                ch->value.int_value = *ch->max_value;
-            }
-            if (ch->value.int_value < *ch->min_value){
-                ch->value.int_value = *ch->min_value;
-            }
-            break;
-        case homekit_format_int:
-        case homekit_format_uint16:
-        case homekit_format_uint32:
-            printf ("%s: Checking integer bounds\n",__func__);
-            if (ch->value.int_value > *ch->max_value){
-                ch->value.int_value = *ch->max_value;
-            }
-            if (ch->value.int_value < *ch->min_value){
-                ch->value.int_value = *ch->min_value;
-            }
-            break;
-        case homekit_format_string:
-            break;
-        case homekit_format_float:
-            printf ("%s: Checking float bounds\n",__func__);
-            if (ch->value.float_value > *ch->max_value){
-                ch->value.float_value = *ch->max_value;
-            }
-            if (ch->value.float_value < *ch->min_value){
-                ch->value.float_value = *ch->min_value;
-            }
-            break;
-            break;
-        case homekit_format_uint64:
-        case homekit_format_tlv:
-        default:
-            printf ("%s: Unknown characteristic format\n", __func__);
-    }
-}
 
 void task_stats_task ( void *args)
 {
@@ -153,8 +109,9 @@ void checkWifiTask(void *pvParameters)
     uint8_t status ;
     
     wifi_connected = false;
-
-    ip_addr_t target_ip;
+    
+    ip_addr_t dns_target_ip;
+    int dns_error_count = 0;
     int ret=0;
 
     while (1)
@@ -192,18 +149,22 @@ void checkWifiTask(void *pvParameters)
                     
             }
 
-
-
-    	    ret = netconn_gethostbyname(HOST, &target_ip);
+    	    ret = netconn_gethostbyname(HOST, &dns_target_ip);
     	    switch (ret){
         	case ERR_OK:
-                	printf ("%s: DNS Lookup OK", __func__);
+                	printf ("%s: DNS Lookup OK ", __func__);
+                    dns_error_count = 0;
                 	break;
         	default:
-                	printf ("%s: DNS Lookup failed, error: %d", __func__, ret);
-			led_code (status_led_gpio, WIFI_ISSUE);
-        	}
-
+                	printf ("%s: DNS Lookup failed, error: %d ", __func__, ret);
+                    led_code (status_led_gpio, WIFI_ISSUE);
+                    dns_error_count++;
+                    if (dns_error_count > DNS_CHECK_MAX_RETRIES){
+                        printf ("%s: DNS check max retries exceeded restarting accessory\n", __func__);
+                        save_characteristics();
+                        sdk_system_restart();
+                    }
+            }
         }
         else {
             printf("\n%s : no check performed, check interval: %d, accessory paired: %d", __func__, wifi_check_interval.value.int_value, accessory_paired);
@@ -491,6 +452,5 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     wifi_check_stop_start (wifi_check_interval.value.int_value);
 
     sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
-
 }
 

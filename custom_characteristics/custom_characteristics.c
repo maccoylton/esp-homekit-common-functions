@@ -8,6 +8,56 @@
 
 
 
+void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
+    
+    printf ("%s: %s: ",__func__, ch->description);
+    switch (ch->format) {
+        case homekit_format_bool:
+            if ((ch->value.bool_value != 0) && (ch->value.bool_value != 1)){
+                ch->value.bool_value = false;
+            }
+            break;
+        case homekit_format_uint8:
+            printf ("Checking uint8 bounds");
+            if (ch->value.int_value > *ch->max_value){
+                ch->value.int_value = *ch->max_value;
+            }
+            if (ch->value.int_value < *ch->min_value){
+                ch->value.int_value = *ch->min_value;
+            }
+            break;
+        case homekit_format_int:
+        case homekit_format_uint16:
+        case homekit_format_uint32:
+            printf ("Checking integer bounds");
+            if (ch->value.int_value > *ch->max_value){
+                ch->value.int_value = *ch->max_value;
+            }
+            if (ch->value.int_value < *ch->min_value){
+                ch->value.int_value = *ch->min_value;
+            }
+            break;
+        case homekit_format_string:
+            break;
+        case homekit_format_float:
+            printf ("Checking float bounds");
+            if (ch->value.float_value > *ch->max_value){
+                ch->value.float_value = *ch->max_value;
+            }
+            if (ch->value.float_value < *ch->min_value){
+                ch->value.float_value = *ch->min_value;
+            }
+            break;
+        case homekit_format_uint64:
+        case homekit_format_tlv:
+        default:
+            printf ("Unknown characteristic format\n");
+    }
+    printf("\n");
+}
+
+
+
 void print_binary_value(char *key, uint8_t *value, size_t len) {
     size_t i;
     
@@ -211,6 +261,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK ) {
                 ch->value.bool_value = bool_value;
                 printf("%s\n", ch->value.bool_value ? "true" : "false");
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint8:
@@ -219,6 +270,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK) {
                 ch->value.int_value = int8_value;
                 printf("%d\n", ch->value.int_value);
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_int:
@@ -227,6 +279,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = (int)int32_value;
                 printf("%d\n", ch->value.int_value);
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint16:
@@ -235,6 +288,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = (uint16_t)int32_value;
                 printf("%d\n", ch->value.int_value);
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint32:
@@ -243,6 +297,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = int32_value;
                 printf("%d\n", ch->value.int_value);
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_string:
@@ -251,6 +306,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK) {
                 ch->value = HOMEKIT_STRING(string_value);
                 printf("%s\n", string_value);
+                homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_float:
@@ -259,6 +315,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             if (status == SYSPARAM_OK ) {
                 ch->value.float_value = int32_value * 1.0f /100;
                 printf("%f\n", ch->value.float_value);
+                homekit_characteristic_bounds_check(ch);
                 }
             break;
         case homekit_format_uint64:

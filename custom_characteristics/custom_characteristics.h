@@ -417,6 +417,9 @@ void save_float_param ( char *description, float new_float_value);
 
 void load_float_param ( char *description, float *new_float_value);
 
+void homekit_characteristic_bounds_check (homekit_characteristic_t *ch);
+/* check that integers and floats are within min and max values */
+
 
 
 

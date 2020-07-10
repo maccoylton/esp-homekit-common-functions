@@ -95,7 +95,5 @@ void lcm_beta_set ( homekit_value_t value);
 void wifi_check_stop_start (int interval);
 /* called to set the wifi check taks runing or stop it if the value passed is 0 */
 
-void homekit_characteristic_bounds_check (homekit_characteristic_t *ch);
-/* check that integers and floats are within min and max values */
 
 #endif
