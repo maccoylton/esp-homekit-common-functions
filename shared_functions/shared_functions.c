@@ -390,7 +390,7 @@ void on_homekit_event(homekit_event_t event) {
 
 void on_wifi_ready ( void) {
     
-    printf("on_wifi_ready\n");
+    printf("%s: , Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     get_sysparam_info();
     reset_information = sdk_system_get_rst_info();
     switch (reset_information->reason){
@@ -413,12 +413,19 @@ void on_wifi_ready ( void) {
             
     }
     printf ("%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__,  reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+    
+    printf("%s: Calling homekit_server_init, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     homekit_server_init(&config);
+    printf("%s: After calling homekit_Server_init, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
 }
 
 
 void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *manufacturer, homekit_characteristic_t *model, homekit_characteristic_t *serial, homekit_characteristic_t *revision){
+
+    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
     rboot_rtc_data rtc;
 
@@ -452,5 +459,8 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     wifi_check_stop_start (wifi_check_interval.value.int_value);
 
     sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
+    
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
 }
 
