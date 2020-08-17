@@ -72,6 +72,9 @@ void print_binary_value(char *key, uint8_t *value, size_t len) {
 }
 
 void get_sysparam_info() {
+    
+    printf("%s: , Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
     uint32_t base_addr,num_sectors;
     sysparam_iter_t sysparam_iter;
     sysparam_status_t sysparam_status;
@@ -108,6 +111,8 @@ void get_sysparam_info() {
         //   SYSPARAM_NOTFOUND is the normal status when we've reached the end of all entries.
         printf ("%s: sysparam iter_end error:%d\n", __func__, sysparam_status);
     }
+    printf("%s: , Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
 }
 
 
