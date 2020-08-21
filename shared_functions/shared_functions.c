@@ -87,7 +87,7 @@ void task_stats_set (homekit_value_t value) {
     if (value.bool_value)
         {
             if (task_stats_task_handle == NULL){
-                xTaskCreate(task_stats_task, "task_stats_task", 512 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
+                xTaskCreate(task_stats_task, "task_stats_task", 256 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
             } else {
                 printf ("%s task_Status_set TRUE, but task pointer not NULL\n", __func__);
             }
@@ -199,7 +199,7 @@ void wifi_check_stop_start (int interval)
         if (wifi_check_interval_task_handle == NULL)
         {
             printf ("%s Starting Task\n", __func__);
-            xTaskCreate (checkWifiTask, "Check WiFi Task", 512, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
+            xTaskCreate (checkWifiTask, "Check WiFi Task", 288, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
         }
     }
 }
