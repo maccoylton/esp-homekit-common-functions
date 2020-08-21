@@ -18,6 +18,8 @@
 
 #include <homekit/homekit.h>
 #include <homekit/characteristics.h>
+#include <FreeRTOS.h>
+
 
 #ifndef __HOMEKIT_DBB_CUSTOM_CHARACTERISTICS__
 #define __HOMEKIT_DBB_CUSTOM_CHARACTERISTICS__

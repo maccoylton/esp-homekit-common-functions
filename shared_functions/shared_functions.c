@@ -83,7 +83,7 @@ void task_stats_task ( void *args)
 
 void task_stats_set (homekit_value_t value) {
     
-    printf("Task Stats\n");
+    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     if (value.bool_value)
         {
             if (task_stats_task_handle == NULL){
@@ -101,6 +101,8 @@ void task_stats_set (homekit_value_t value) {
             printf ("%s task_Status_set FALSE, but task pointer is NULL\n", __func__);
         }
     }
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
 }
 
 
@@ -186,6 +188,8 @@ void checkWifiTask(void *pvParameters)
 
 void wifi_check_stop_start (int interval)
 {
+    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
     if (interval==0){
         /* check interval is 0 so make sure the task is not running */
         if (wifi_check_interval_task_handle != NULL)
@@ -202,6 +206,7 @@ void wifi_check_stop_start (int interval)
             xTaskCreate (checkWifiTask, "Check WiFi Task", 288, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
         }
     }
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 }
 
 void wifi_check_interval_set (homekit_value_t value){
@@ -302,7 +307,7 @@ void reset_button_callback(uint8_t gpio, void* args, uint8_t param) {
 
 void create_accessory_name(const char* name, const char* model, homekit_characteristic_t *accessory_name, homekit_characteristic_t *accessory_serial){
     
-    printf ("Create accessory name\n|");
+    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
     int serialLength = snprintf(NULL, 0, "%d", sdk_system_get_chip_id());
     
@@ -327,6 +332,9 @@ void create_accessory_name(const char* name, const char* model, homekit_characte
     
     accessory_name->value = HOMEKIT_STRING(name_value);
     accessory_serial->value = HOMEKIT_STRING(serialNumberValue);
+    
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
 }
 
 
@@ -334,18 +342,18 @@ void on_homekit_event(homekit_event_t event) {
     
     switch (event) {
         case HOMEKIT_EVENT_SERVER_INITIALIZED:
-            printf("on_homekit_event: Server initialised, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Server initialised, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             if (homekit_is_paired()){
                 /* if server has started and we already have a pairing then initialise*/
                 accessory_paired = true;
-                printf("on_homekit_event: Acessory is paired on initialisation, Free Heap=%d\n", xPortGetFreeHeapSize());
+                printf("%s: Acessory is paired on initialisation, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
                 accessory_init ();
                 led_code( status_led_gpio, WIFI_CONNECTED);
                 wifi_check_stop_start (wifi_check_interval.value.int_value);
             }
             else
             {
-                printf("on_homekit_event: Acessory is NOT paired on initialisation, Free Heap=%d\n", xPortGetFreeHeapSize());
+                printf("%s: Acessory is NOT paired on initialisation, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
                 accessory_paired = false;
                 /* stop wifi check to reduce interference with pairing*/
                 accessory_init_not_paired ();
@@ -353,44 +361,45 @@ void on_homekit_event(homekit_event_t event) {
             }
             break;
         case HOMEKIT_EVENT_CLIENT_CONNECTED:
-            printf("on_homekit_event: Client connected, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Client connected, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             break;
         case HOMEKIT_EVENT_CLIENT_VERIFIED:
-            printf("on_homekit_event: Client verified, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Client verified, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             /* we weren't paired on started up but we now are */
             if (!accessory_paired ){
                 accessory_paired = true;
-                printf("on_homekit_event: Acessory is paired on after client validaiton\n");
+                printf("%s: Acessory is paired on after client validaiton, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
                 accessory_init();
                 led_code( status_led_gpio, WIFI_CONNECTED);
                 wifi_check_stop_start (wifi_check_interval.value.int_value);
             }
             break;
         case HOMEKIT_EVENT_CLIENT_DISCONNECTED:
-            printf("on_homekit_event: Client disconnected, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Client disconnected, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             break;
         case HOMEKIT_EVENT_PAIRING_ADDED:
-            printf("on_homekit_event: Pairing added, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Pairing added, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             break;
         case HOMEKIT_EVENT_PAIRING_REMOVED:
-            printf("on_homekit_event: Pairing removed, Free Heap=%d\n", xPortGetFreeHeapSize());
+            printf("%s: Pairing removed, Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
             if (!homekit_is_paired()){
             /* if we have no more pairings then restart */
-                printf("on_homekit_event: no more pairings so restart\n");
+                printf("%s: no more pairings so restart\n", __func__);
                 accessory_paired = false;
                 sdk_system_restart();
                 wifi_check_stop_start (0);
             }
             break;
         default:
-            printf("on_homekit_event: Default event %d,  Free Heap=%d\n", event, xPortGetFreeHeapSize());
+            printf("%s: Default event %d,  Free Heap=%d\n", __func__, event, xPortGetFreeHeapSize());
     }
+    printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
 }
 
 void on_wifi_ready ( void) {
     
-    printf("%s: , Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     get_sysparam_info();
     reset_information = sdk_system_get_rst_info();
     switch (reset_information->reason){
@@ -425,7 +434,7 @@ void on_wifi_ready ( void) {
 
 void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *manufacturer, homekit_characteristic_t *model, homekit_characteristic_t *serial, homekit_characteristic_t *revision){
 
-    printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+    printf("%s: Start, SDK version: %s, Freep Heap=%d\n", __func__, sdk_system_get_sdk_version(), xPortGetFreeHeapSize());
 
     rboot_rtc_data rtc;
 
@@ -436,29 +445,33 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     } else {
         printf("%s: Error reading RTC\n", __func__);
     }
-    
+    printf("%s: RTC Data, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
     uart_set_baud(0, 115200);
+    printf("%s: UART, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
     udplog_init(tskIDLE_PRIORITY+1);
-    printf("%s:SDK version: %s, free heap %u\n", __func__, sdk_system_get_sdk_version(),
-           xPortGetFreeHeapSize());
+    printf("%s: UDP Log Init Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
     get_sysparam_info();
     
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
     load_characteristic_from_flash (&lcm_beta);
+    printf("%s: Load charactersitics Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
-    
-    create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
+        create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
     
     int c_hash=ota_read_sysparam(&manufacturer->value.string_value,&serial->value.string_value,
                                  &model->value.string_value,&revision->value.string_value);
     if (c_hash==0) c_hash=1;
     config.accessories[0]->config_number=c_hash;
+    printf("%s: ota_read_sysparams Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
-    wifi_check_stop_start (wifi_check_interval.value.int_value);
+    /*wifi_check_stop_start (wifi_check_interval.value.int_value);*/
 
     sdk_os_timer_setfn(&save_timer, save_characteristics, NULL);
+    printf("%s: Save Timer Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
     printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
