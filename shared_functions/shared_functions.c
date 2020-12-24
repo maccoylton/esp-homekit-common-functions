@@ -87,7 +87,7 @@ void task_stats_set (homekit_value_t value) {
     if (value.bool_value)
         {
             if (task_stats_task_handle == NULL){
-                xTaskCreate(task_stats_task, "task_stats_task", 256 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
+                xTaskCreate(task_stats_task, "task_stats_task", 512 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
             } else {
                 printf ("%s task_Status_set TRUE, but task pointer not NULL\n", __func__);
             }
@@ -399,6 +399,9 @@ void on_homekit_event(homekit_event_t event) {
 
 void on_wifi_ready ( void) {
     
+    udplog_init(tskIDLE_PRIORITY+1);
+    printf("%s: UDP Log Init Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
     printf("%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     get_sysparam_info();
     reset_information = sdk_system_get_rst_info();
@@ -449,9 +452,6 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
 
     uart_set_baud(0, 115200);
     printf("%s: UART, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
-
-    udplog_init(tskIDLE_PRIORITY+1);
-    printf("%s: UDP Log Init Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
     get_sysparam_info();
     
