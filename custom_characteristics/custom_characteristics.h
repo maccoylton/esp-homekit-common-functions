@@ -405,6 +405,17 @@
 
 
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_EXTERNALTEMP_SENSOR HOMEKIT_CUSTOM_UUID_DBB("F000001F")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_EXTERNALTEMP_SENSOR(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_EXTERNALTEMP_SENSOR, \
+.description = "External temperature Sensor", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
