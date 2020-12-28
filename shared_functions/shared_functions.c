@@ -7,6 +7,12 @@
 
 #include <shared_functions.h>
 #include <lwip/api.h>
+/* Add extras/sntp component to makefile for this include to work */
+#include <sntp.h>
+#include <time.h>
+
+#define SNTP_SERVERS     "0.pool.ntp.org", "1.pool.ntp.org", \
+"2.pool.ntp.org", "3.pool.ntp.org"
 
 #define CHECK_INTERVAL 30000
 #define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
@@ -20,9 +26,28 @@ TaskHandle_t task_stats_task_handle = NULL;
 TaskHandle_t wifi_check_interval_task_handle = NULL;
 ETSTimer save_timer;
 int power_cycle_count = 0;
+bool sntp_on = false;
 
 bool wifi_connected;
 
+
+void setup_sntp(){
+    
+    const char *servers[] = {SNTP_SERVERS};
+    /* Start SNTP */
+    printf("%s: Starting SNTP... ", __func__);
+    /* SNTP will request an update each 5 minutes */
+    sntp_set_update_delay(5*60000);
+    /* Set GMT+1 zone, daylight savings off */
+    const struct timezone tz = {1*60, 0};
+    /* SNTP initialization */
+    sntp_initialize(&tz);
+    /* Servers must be configured right after initialization */
+    sntp_set_servers(servers, sizeof(servers) / sizeof(char*));
+    time_t ts = time(NULL);
+    printf("TIME: %s", ctime(&ts));
+    printf("%s: DONE!\n", __func__);
+}
 
 void task_stats_task ( void *args)
 {
@@ -87,7 +112,7 @@ void task_stats_set (homekit_value_t value) {
     if (value.bool_value)
         {
             if (task_stats_task_handle == NULL){
-                xTaskCreate(task_stats_task, "task_stats_task", 512 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
+                xTaskCreate(task_stats_task, "task_stats_task", 384 , NULL, tskIDLE_PRIORITY+1, &task_stats_task_handle);
             } else {
                 printf ("%s task_Status_set TRUE, but task pointer not NULL\n", __func__);
             }
@@ -120,7 +145,7 @@ void checkWifiTask(void *pvParameters)
     {
         if (wifi_check_interval.value.int_value != 0 && accessory_paired == true) {
             /* only check if no zero */
-            printf("\n%s WiFi: check interval %d, Status: ", __func__, wifi_check_interval.value.int_value);
+            printf("\n%s interval %d, Status: ", __func__, wifi_check_interval.value.int_value);
             status = sdk_wifi_station_get_connect_status();
             switch (status)
             {
@@ -154,11 +179,11 @@ void checkWifiTask(void *pvParameters)
     	    ret = netconn_gethostbyname(HOST, &dns_target_ip);
     	    switch (ret){
         	case ERR_OK:
-                	printf ("DNS Lookup OK ");
+                	printf ("DNS OK ");
                     dns_error_count = 0;
                 	break;
         	default:
-                	printf ("DNS Lookup failed, error: %d ", ret);
+                	printf ("DNS failed: %d ", ret);
                     led_code (status_led_gpio, WIFI_ISSUE);
                     dns_error_count++;
                     if (dns_error_count > DNS_CHECK_MAX_RETRIES){
@@ -172,6 +197,12 @@ void checkWifiTask(void *pvParameters)
             printf("\n%s : no check performed, check interval: %d, accessory paired: %d", __func__, wifi_check_interval.value.int_value, accessory_paired);
             
         }
+        
+        if (sntp_on) {
+            time_t ts = time(NULL);
+            printf("TIME: %s ", ctime(&ts));
+        }
+        
         printf ("Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)/4);
         /*uxTaskGetStackHighWaterMark returns a number in bytes, stack is created in words, so device by 4 to get nujber of words left on stack */
         

@@ -35,6 +35,7 @@ extern homekit_characteristic_t lcm_beta;
 struct sdk_rst_info* reset_information;
 extern int power_cycle_count;
 extern ETSTimer save_timer;
+extern bool sntp_on;
 
 
 void accessory_init(void);
@@ -95,5 +96,7 @@ void lcm_beta_set ( homekit_value_t value);
 void wifi_check_stop_start (int interval);
 /* called to set the wifi check taks runing or stop it if the value passed is 0 */
 
+void setup_sntp();
+/* used to initialize SNTP functionality */
 
 #endif
