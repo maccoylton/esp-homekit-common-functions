@@ -26,6 +26,28 @@ shared functions used all accessorys
 #include <rboot-api.h>
 
 
+#include <lwip/api.h>
+
+
+#ifdef EXTRAS_TIMEKEEPING
+    #include <sntp_impl.h>
+#endif
+
+#ifdef EXTRAS_SNTP
+    /* Add extras/sntp component to makefile for this include to work */
+    #include <sntp.h>
+    #include <time.h>
+#endif
+
+
+#define CHECK_INTERVAL 30000
+#define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
+#define TASK_STATS_INTERVAL 50000
+#define WIFI_ISSUE                  (blinking_params_t){10,0}
+#define HOST "github.com"
+#define DNS_CHECK_MAX_RETRIES 12
+
+
 extern const int status_led_gpio;
 extern bool accessory_paired;
 extern homekit_server_config_t config;

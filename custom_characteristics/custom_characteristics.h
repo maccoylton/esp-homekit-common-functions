@@ -424,11 +424,11 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch);
 
 void get_sysparam_info();
 
-void save_int32_param ( char *description, int32_t new_value);
+void save_int32_param ( const char *description, int32_t new_value);
 
-void save_float_param ( char *description, float new_float_value);
+void save_float_param ( const char *description, float new_float_value);
 
-void load_float_param ( char *description, float *new_float_value);
+void load_float_param ( const char *description, float *new_float_value);
 
 void homekit_characteristic_bounds_check (homekit_characteristic_t *ch);
 /* check that integers and floats are within min and max values */

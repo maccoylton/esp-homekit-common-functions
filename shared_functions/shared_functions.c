@@ -1,25 +1,14 @@
 
 /*
- shared functions used all accessorys
- 
- */
+ *Copyright 2018 David B Brown (@maccoylton)
+ *
+ * Shared functions used all accessories
+ *
+*/
 
 
 #include <shared_functions.h>
-#include <lwip/api.h>
-/* Add extras/sntp component to makefile for this include to work */
-#include <sntp.h>
-#include <time.h>
 
-#define SNTP_SERVERS     "0.pool.ntp.org", "1.pool.ntp.org", \
-"2.pool.ntp.org", "3.pool.ntp.org"
-
-#define CHECK_INTERVAL 30000
-#define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
-#define TASK_STATS_INTERVAL 50000
-#define WIFI_ISSUE                  (blinking_params_t){10,0}
-#define HOST "github.com"
-#define DNS_CHECK_MAX_RETRIES 12
 
 bool accessory_paired = false;
 TaskHandle_t task_stats_task_handle = NULL;
@@ -27,15 +16,63 @@ TaskHandle_t wifi_check_interval_task_handle = NULL;
 ETSTimer save_timer;
 int power_cycle_count = 0;
 bool sntp_on = false;
-
 bool wifi_connected;
 
 
 void setup_sntp(){
     
-    const char *servers[] = {SNTP_SERVERS};
+  #ifdef EXTRAS_TIMEKEEPING
     /* Start SNTP */
     printf("%s: Starting SNTP... ", __func__);
+
+    setenv("TZ", "CET-1CEST,M3.5.0/2,M10.5.0/3", 1);
+    
+    tzset();
+    
+    printf (" tset");
+    
+    sntp_setoperatingmode(SNTP_OPMODE_POLL);
+    
+    printf (" operting mode set");
+    
+    sntp_setservername(0, "0.pool.ntp.org");
+    sntp_setservername(1, "1.pool.ntp.org");
+    sntp_setservername(2, "2.pool.ntp.org");
+    
+    printf (" server names set");
+    
+    sntp_init();
+   
+    printf (" init called");
+    
+    /* SNTP will request an update each 5 minutes */
+    
+    time_t ts = time(NULL);
+    
+    printf (" time called ");
+    
+    printf("TIME: %s", ctime(&ts));
+    printf("%s: DONE!\n", __func__);
+    
+    printf ("SNTP_CHECK_RESPONSE: %d\n", SNTP_CHECK_RESPONSE);
+    printf ("SNTP_COMP_ROUNDTRIP: %d\n" , SNTP_COMP_ROUNDTRIP);
+    printf ("SNTP_SERVER_DNS: %d\n", SNTP_SERVER_DNS);
+    printf ("SNTP_MAX_SERVERS: %d\n", SNTP_MAX_SERVERS);
+    printf ("SNTP_UPDATE_DELAY: %d\n", SNTP_UPDATE_DELAY);
+
+    sntp_on = true;
+    /* used in homekit common functions */
+
+   #endif
+    
+ #ifdef EXTRAS_SNTP
+    
+    #define SNTP_SERVERS 	"0.pool.ntp.org", "1.pool.ntp.org", \
+        "2.pool.ntp.org", "3.pool.ntp.org"
+    
+    const char *servers[] = {SNTP_SERVERS};
+    /* Start SNTP */
+    printf("Starting SNTP... ");
     /* SNTP will request an update each 5 minutes */
     sntp_set_update_delay(5*60000);
     /* Set GMT+1 zone, daylight savings off */
@@ -44,16 +81,20 @@ void setup_sntp(){
     sntp_initialize(&tz);
     /* Servers must be configured right after initialization */
     sntp_set_servers(servers, sizeof(servers) / sizeof(char*));
-    time_t ts = time(NULL);
-    printf("TIME: %s", ctime(&ts));
-    printf("%s: DONE!\n", __func__);
+    printf("DONE!\n");
+
+    sntp_on = true;
+    /* used in homekit common functions */
+
+ #endif
 }
+
 
 void task_stats_task ( void *args)
 {
-    TaskStatus_t *pxTaskStatusArray;
-    UBaseType_t uxArraySize, x;
-    uint32_t ulTotalRunTime;
+    static TaskStatus_t *pxTaskStatusArray;
+    static UBaseType_t uxArraySize, x;
+    static uint32_t ulTotalRunTime;
     
     printf ("%s", __func__);
     
@@ -239,6 +280,7 @@ void wifi_check_stop_start (int interval)
     }
     printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 }
+
 
 void wifi_check_interval_set (homekit_value_t value){
     
@@ -427,6 +469,7 @@ void on_homekit_event(homekit_event_t event) {
     printf("%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
 }
+
 
 void on_wifi_ready ( void) {
     
