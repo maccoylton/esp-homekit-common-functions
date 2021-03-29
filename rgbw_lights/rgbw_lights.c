@@ -46,19 +46,19 @@ void cycle_colours_task(){
     colours_gpio_test.value.bool_value = true;
     homekit_characteristic_notify(&colours_gpio_test,colours_gpio_test.value );
     while (1){
-        printf ("%s: Red\n", __func__);
+        printf ("%s: Red, pin: %d\n", __func__, red_gpio.value.int_value );
         set_colours (COLOUR_MAX, 0, 0, 0);
         vTaskDelay (EFFECT_DELAY);
 
-        printf ("%s: Green\n", __func__);
+        printf ("%s: Green, pin: %d\n", __func__, green_gpio.value.int_value );
         set_colours ( 0, COLOUR_MAX, 0, 0);
         vTaskDelay (EFFECT_DELAY);
 
-        printf ("%s: Blue\n",  __func__);
+        printf ("%s: Blue, pin: %d\n",  __func__, blue_gpio.value.int_value );
         set_colours (0, 0, COLOUR_MAX, 0);
         vTaskDelay (EFFECT_DELAY);
 
-        printf ("%s White\n",  __func__);
+        printf ("%s White, pin: %d\n",  __func__, white_gpio.value.int_value );
         set_colours (0, 0, 0, COLOUR_MAX);
         vTaskDelay (EFFECT_DELAY);
     }
