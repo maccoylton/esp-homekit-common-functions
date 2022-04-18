@@ -13,7 +13,7 @@ void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
     printf ("%s: %s: ",__func__, ch->description);
     switch (ch->format) {
         case homekit_format_bool:
-            printf ("Checking uint8 bounds");
+            printf ("Checking boolean bounds");
             if ((ch->value.bool_value != 0) && (ch->value.bool_value != 1)){
                 printf (" Out of bounds setting to false");
                 ch->value.bool_value = false;
