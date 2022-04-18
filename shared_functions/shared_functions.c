@@ -532,6 +532,7 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
     load_characteristic_from_flash (&lcm_beta);
+    
     printf("%s: Load charactersitics Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
         create_accessory_name(name->value.string_value, model->value.string_value, name, serial);

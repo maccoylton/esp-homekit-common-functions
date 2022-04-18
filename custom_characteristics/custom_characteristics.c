@@ -13,16 +13,20 @@ void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
     printf ("%s: %s: ",__func__, ch->description);
     switch (ch->format) {
         case homekit_format_bool:
+            printf ("Checking uint8 bounds");
             if ((ch->value.bool_value != 0) && (ch->value.bool_value != 1)){
+                printf (" Out of bounds setting to false");
                 ch->value.bool_value = false;
             }
             break;
         case homekit_format_uint8:
             printf ("Checking uint8 bounds");
             if (ch->value.int_value > *ch->max_value){
+                printf (" Greater than max, setting to max");
                 ch->value.int_value = *ch->max_value;
             }
             if (ch->value.int_value < *ch->min_value){
+                printf (" Lower than min, setting to min");
                 ch->value.int_value = *ch->min_value;
             }
             break;
@@ -31,9 +35,11 @@ void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
         case homekit_format_uint32:
             printf ("Checking integer bounds");
             if (ch->value.int_value > *ch->max_value){
+                printf (" Greater than max, setting to max");
                 ch->value.int_value = *ch->max_value;
             }
             if (ch->value.int_value < *ch->min_value){
+                printf (" Lower than min, setting to min");
                 ch->value.int_value = *ch->min_value;
             }
             break;
@@ -42,9 +48,11 @@ void homekit_characteristic_bounds_check (homekit_characteristic_t *ch){
         case homekit_format_float:
             printf ("Checking float bounds");
             if (ch->value.float_value > *ch->max_value){
+                printf (" Greater than max, setting to max");
                 ch->value.float_value = *ch->max_value;
             }
             if (ch->value.float_value < *ch->min_value){
+                printf (" Lower than min, setting to min");
                 ch->value.float_value = *ch->min_value;
             }
             break;
@@ -248,7 +256,7 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
             status = sysparam_get_bool(ch->description, &bool_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.bool_value = bool_value;
-                printf("%s\n", ch->value.bool_value ? "true" : "false");
+                printf("%d %s\n", ch->value.bool_value , ch->value.bool_value ? "true" : "false");
                 homekit_characteristic_bounds_check(ch);
             }
             break;
