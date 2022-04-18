@@ -58,6 +58,7 @@ struct sdk_rst_info* reset_information;
 extern int power_cycle_count;
 extern ETSTimer save_timer;
 extern bool sntp_on;
+extern homekit_characteristic_t preserve_state;
 
 
 void accessory_init(void);
@@ -120,5 +121,9 @@ void wifi_check_stop_start (int interval);
 
 void setup_sntp();
 /* used to initialize SNTP functionality */
+
+void preserve_state_set (homekit_value_t value);
+/* called to save the state fo preserve config over power outage */
+
 
 #endif

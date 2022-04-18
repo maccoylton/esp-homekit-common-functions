@@ -282,6 +282,14 @@ void wifi_check_stop_start (int interval)
 }
 
 
+void preserve_state_set (homekit_value_t value){
+    
+    preserve_state.value.bool_value = value.bool_value;
+    printf ("%s Preserve State: %s\n", __func__,  preserve_state.value.bool_value ? "true" : "false");
+    sdk_os_timer_arm (&save_timer, WIFI_CHECK_INTERVAL_SAVE_DELAY, 0);
+}
+
+
 void wifi_check_interval_set (homekit_value_t value){
     
     wifi_check_interval.value.int_value = value.int_value;
@@ -532,7 +540,8 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
     load_characteristic_from_flash (&lcm_beta);
-    
+    load_characteristic_from_flash (&preserve_state);
+
     printf("%s: Load charactersitics Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
         create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
