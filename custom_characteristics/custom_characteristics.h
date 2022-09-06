@@ -444,6 +444,20 @@
 ##__VA_ARGS__
 
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_RGBIC_EFFECT_SPEED HOMEKIT_CUSTOM_UUID_DBB("F0000022")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_RGBIC_EFFECT_SPEED(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_RGBIC_EFFECT_SPEED, \
+.description = "RGBIC EFFECT SPEED", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {1}, \
+.max_value = (float[]) {255}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
