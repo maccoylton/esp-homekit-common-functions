@@ -239,7 +239,7 @@ void checkWifiTask(void *pvParameters)
             
         }
         
-        if (sntp_on) {
+        if (sntp_on == true) {
             time_t ts = time(NULL);
             printf("TIME: %s ", ctime(&ts));
         }
