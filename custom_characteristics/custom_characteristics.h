@@ -458,6 +458,20 @@
 .value = HOMEKIT_UINT8_(_value), \
 ##__VA_ARGS__
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_RGBIC_LED_COUNT HOMEKIT_CUSTOM_UUID_DBB("F0000023")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_RGBIC_LED_COUNT(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_RGBIC_LED_COUNT, \
+.description = "RGBIC LED COUNT", \
+.format = homekit_format_uint16, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {1}, \
+.max_value = (float[]) {1000}, \
+.min_step = (float[]) {5}, \
+.value = HOMEKIT_UINT16_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
