@@ -426,7 +426,7 @@
 | homekit_permissions_paired_write \
 | homekit_permissions_notify, \
 .min_value = (float[]) {0}, \
-.max_value = (float[]) {53}, \
+.max_value = (float[]) {54}, \
 .min_step = (float[]) {1}, \
 .value = HOMEKIT_UINT8_(_value), \
 ##__VA_ARGS__
