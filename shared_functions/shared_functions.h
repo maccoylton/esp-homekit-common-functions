@@ -43,18 +43,36 @@ shared functions used all accessorys
 #define CHECK_INTERVAL 30000
 #define WIFI_CHECK_INTERVAL_SAVE_DELAY 30000
 #define TASK_STATS_INTERVAL 50000
+
+#define TASK_STATS_STACK_SIZE 512
+#define CHECK_WIFI_STACK_SIZE 384
+#define IDENTIFY_STACK_SIZE 128
+#define RESET_CONFIG_STACK_SIZE 256
+
 #define WIFI_ISSUE                  (blinking_params_t){10,0}
 #define HOST "github.com"
 #define DNS_CHECK_MAX_RETRIES 12
 
+#define LOG_ERR    1
+#define LOG_ACTION 2
+#define LOG_EVENT  3
+#define LOG_WIFI   4
+#define LOG_MEM    5
+#define LOG_FLOW   6
+#define LOG_SNTP   7
+
+extern int log_level;
+#define LOG(level, ...) do { if (level <= log_level) { printf(__VA_ARGS__); } } while(0)
+
 
 extern const int status_led_gpio;
 extern bool accessory_paired;
+extern int log_level;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
 extern homekit_characteristic_t ota_beta;
 extern homekit_characteristic_t lcm_beta;
-struct sdk_rst_info* reset_information;
+extern struct sdk_rst_info* reset_information;
 extern int power_cycle_count;
 extern ETSTimer save_timer;
 extern bool sntp_on;
@@ -114,6 +132,7 @@ void ota_beta_set ( homekit_value_t value);
 /* called to set the ota_beta flag */
 
 void lcm_beta_set ( homekit_value_t value);
+void lcm_emergency_set ( homekit_value_t value);
 /* called to set the lcm_beta flag */
 
 void wifi_check_stop_start (int interval);
@@ -124,6 +143,8 @@ void setup_sntp();
 
 void preserve_state_set (homekit_value_t value);
 /* called to save the state fo preserve config over power outage */
+
+void log_level_set (homekit_value_t value);
 
 
 #endif

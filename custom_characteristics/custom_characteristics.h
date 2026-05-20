@@ -472,6 +472,31 @@
 .value = HOMEKIT_UINT16_(_value), \
 ##__VA_ARGS__
 
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LOG_LEVEL HOMEKIT_CUSTOM_UUID_DBB("F0000024")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LOG_LEVEL(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_LOG_LEVEL, \
+.description = "Log Level", \
+.format = homekit_format_uint8, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.min_value = (float[]) {0}, \
+.max_value = (float[]) {7}, \
+.min_step = (float[]) {1}, \
+.value = HOMEKIT_UINT8_(_value), \
+##__VA_ARGS__
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_LCM_EMERGENCY HOMEKIT_CUSTOM_UUID_DBB("F0000025")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_LCM_EMERGENCY(_value, ...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_LCM_EMERGENCY, \
+.description = "lcm_emergency", \
+.format = homekit_format_bool, \
+.permissions = homekit_permissions_paired_read \
+| homekit_permissions_paired_write \
+| homekit_permissions_notify, \
+.value = HOMEKIT_BOOL_(_value), \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);
