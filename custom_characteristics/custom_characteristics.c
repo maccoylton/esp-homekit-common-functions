@@ -99,6 +99,9 @@ void get_sysparam_info() {
     if (app_sysparam != lcm_sysparam)
         LOG(LOG_ERR, "%s: Sysparam mismatch! app 0x%X vs LCM 0x%X (flash %dMB) - use -fs 1MB\n",
             __func__, app_sysparam, lcm_sysparam, sdk_flashchip.chip_size >> 20);
+    else
+        LOG(LOG_ACTION, "%s: Sysparam OK at 0x%X, matches LCM (flash %dMB)\n",
+            __func__, app_sysparam, sdk_flashchip.chip_size >> 20);
     sysparam_status = sysparam_iter_start (&sysparam_iter);
     if (sysparam_status != 0){
         LOG(LOG_ERR, "%s: iter_start status %d\n",__func__, sysparam_status);
