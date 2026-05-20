@@ -70,6 +70,7 @@ extern bool accessory_paired;
 extern int log_level;
 extern homekit_server_config_t config;
 extern homekit_characteristic_t wifi_check_interval;
+extern homekit_characteristic_t log_level_ch;
 extern homekit_characteristic_t ota_beta;
 extern homekit_characteristic_t lcm_beta;
 extern struct sdk_rst_info* reset_information;

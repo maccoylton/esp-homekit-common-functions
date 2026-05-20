@@ -330,14 +330,10 @@ void lcm_emergency_set (homekit_value_t value){
 
 
 void log_level_set (homekit_value_t value){
-    if (value.format == homekit_format_uint8) {
-        log_level = value.uint8_value;
-    } else if (value.format == homekit_format_float) {
-        log_level = (int)value.float_value;
-    } else if (value.format == homekit_format_int) {
-        log_level = value.int_value;
-    }
+    log_level_ch.value = value;
+    log_level = value.uint8_value;
     LOG(LOG_ACTION, "%s: log level set to %d\n", __func__, log_level);
+    homekit_characteristic_notify(&log_level_ch, log_level_ch.value);
 }
 
 
