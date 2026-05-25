@@ -92,7 +92,7 @@ void get_sysparam_info() {
     
     sysparam_get_info(&base_addr, &num_sectors);
     
-    LOG(LOG_FLOW, "%s: Sysparam base address %i, num_sectors %i\n", __func__, base_addr, num_sectors);
+    LOG(LOG_ACTION, "%s: Sysparam base address %i, num_sectors %i\n", __func__, base_addr, num_sectors);
     
     uint32_t lcm_sysparam = 0xF7000;
     uint32_t app_sysparam = sdk_flashchip.chip_size - 9 * sdk_flashchip.sector_size;
@@ -112,17 +112,17 @@ void get_sysparam_info() {
             if (!sysparam_iter.binary)
                 if (strncmp(sysparam_iter.key,"wifi_password", 13 ) == 0) {
                     if (strlen ((char *)sysparam_iter.value) == 0){
-                        LOG(LOG_FLOW, "%s: sysparam name: %s, value: blank\n", __func__, sysparam_iter.key);
+                        LOG(LOG_ACTION, "%s: sysparam name: %s, value: blank\n", __func__, sysparam_iter.key);
                     } else {
-                        LOG(LOG_FLOW, "%s: sysparam name: %s, value:%s\n", __func__, sysparam_iter.key,"**********");
+                        LOG(LOG_ACTION, "%s: sysparam name: %s, value:%s\n", __func__, sysparam_iter.key,"**********");
                     }
                 } else {
-                    LOG(LOG_FLOW, "%s: sysparam name: %s, value:%s, key length:%d, value length:%d\n", __func__, sysparam_iter.key, (char *)sysparam_iter.value, sysparam_iter.key_len, sysparam_iter.value_len);
+                    LOG(LOG_ACTION, "%s: sysparam name: %s, value:%s, key length:%d, value length:%d\n", __func__, sysparam_iter.key, (char *)sysparam_iter.value, sysparam_iter.key_len, sysparam_iter.value_len);
                 }
                 else
                     print_binary_value(sysparam_iter.key, sysparam_iter.value, sysparam_iter.value_len);
         } else {
-            LOG(LOG_FLOW, "%s: while loop status %d\n",__func__, sysparam_status);
+            LOG(LOG_ACTION, "%s: while loop status %d\n",__func__, sysparam_status);
         }
     }
     sysparam_iter_end (&sysparam_iter);
@@ -260,64 +260,64 @@ void load_characteristic_from_flash (homekit_characteristic_t *ch){
     static int32_t int32_value;
     static char *string_value = NULL;
     
-    LOG(LOG_FLOW, "%s: %s: ",__func__, ch->description);
+    LOG(LOG_ACTION, "%s: %s: ",__func__, ch->description);
     switch (ch->format){
         case homekit_format_bool:
-            LOG(LOG_FLOW, "bool: ");
+            LOG(LOG_ACTION, "bool: ");
             status = sysparam_get_bool(ch->description, &bool_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.bool_value = bool_value;
-                LOG(LOG_FLOW, "%d %s\n", ch->value.bool_value , ch->value.bool_value ? "true" : "false");
+                LOG(LOG_ACTION, "%d %s\n", ch->value.bool_value , ch->value.bool_value ? "true" : "false");
                 homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint8:
-            LOG(LOG_FLOW, "uint8: ");
+            LOG(LOG_ACTION, "uint8: ");
             status = sysparam_get_int8(ch->description, &int8_value);
             if (status == SYSPARAM_OK) {
                 ch->value.int_value = int8_value;
-                LOG(LOG_FLOW, "%d\n", ch->value.int_value);
+                LOG(LOG_ACTION, "%d\n", ch->value.int_value);
                 homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_int:
-            LOG(LOG_FLOW, "int: ");
+            LOG(LOG_ACTION, "int: ");
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = (int)int32_value;
-                LOG(LOG_FLOW, "%d\n", ch->value.int_value);
+                LOG(LOG_ACTION, "%d\n", ch->value.int_value);
                 homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint16:
-            LOG(LOG_FLOW, "uint16: ");
+            LOG(LOG_ACTION, "uint16: ");
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = (uint16_t)int32_value;
-                LOG(LOG_FLOW, "%d\n", ch->value.int_value);
+                LOG(LOG_ACTION, "%d\n", ch->value.int_value);
                 homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_uint32:
-            LOG(LOG_FLOW, "uint32: ");
+            LOG(LOG_ACTION, "uint32: ");
             status = sysparam_get_int32(ch->description, &int32_value);
             if (status == SYSPARAM_OK ) {
                 ch->value.int_value = int32_value;
-                LOG(LOG_FLOW, "%d\n", ch->value.int_value);
+                LOG(LOG_ACTION, "%d\n", ch->value.int_value);
                 homekit_characteristic_bounds_check(ch);
             }
             break;
         case homekit_format_string:
-            LOG(LOG_FLOW, "string: ");
+            LOG(LOG_ACTION, "string: ");
             status = sysparam_get_string(ch->description, &string_value);
             if (status == SYSPARAM_OK) {
                 ch->value = HOMEKIT_STRING(string_value);
-                LOG(LOG_FLOW, "%s\n", string_value);
-                homekit_characteristic_bounds_check(ch);
+                LOG(LOG_ACTION, "%s\n", string_value);
+                free(string_value);
             }
             break;
         case homekit_format_float:
-            LOG(LOG_FLOW, "float: ");
+            LOG(LOG_ACTION, "float: ");
             load_float_param ( ch->description, &ch->value.float_value);
             homekit_characteristic_bounds_check(ch);
             break;

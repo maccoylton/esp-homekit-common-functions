@@ -552,8 +552,6 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     uart_set_baud(0, 115200);
     LOG(LOG_FLOW, "%s: UART, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
-    get_sysparam_info();
-    
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
     load_characteristic_from_flash (&lcm_beta);
