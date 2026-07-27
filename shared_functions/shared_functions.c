@@ -163,10 +163,8 @@ void checkWifiTask(void *pvParameters)
     
     wifi_connected = false;
     
-    ip_addr_t dns_target_ip;
     int consecutive_failures = 0;
     int reconnect_attempts = 0;
-    int ret=0;
 
     while (1)
     {
@@ -180,18 +178,9 @@ void checkWifiTask(void *pvParameters)
             {
                 case STATION_GOT_IP:
                     LOG(LOG_WIFI, "GOT_IP ");
-                    /* Station reports connected — verify with DNS to catch ghost associations */
-                    ret = netconn_gethostbyname(HOST, &dns_target_ip);
-                    if (ret == ERR_OK) {
-                        LOG(LOG_WIFI, "DNS OK ");
-                        wifi_connected = true;
-                        led_code(status_led_gpio, WIFI_CONNECTED);
-                        station_ok = true;
-                    } else {
-                        LOG(LOG_WIFI, "DNS fail:%d ", ret);
-                        led_code(status_led_gpio, WIFI_ISSUE);
-                        wifi_connected = false;
-                    }
+                    wifi_connected = true;
+                    led_code(status_led_gpio, WIFI_CONNECTED);
+                    station_ok = true;
                     break;
                     
                 case STATION_IDLE:
@@ -599,6 +588,9 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     LOG(LOG_EVENT, "%s: Load charactersitics Free Heap=%d\n", __func__, xPortGetFreeHeapSize());
     
         create_accessory_name(name->value.string_value, model->value.string_value, name, serial);
+    
+    /* Free serial value allocated by create_accessory_name before ota_read_sysparam overwrites it */
+    free(serial->value.string_value);
     
     int c_hash=ota_read_sysparam(&manufacturer->value.string_value,&serial->value.string_value,
                                  &model->value.string_value,&revision->value.string_value);
