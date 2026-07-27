@@ -92,7 +92,7 @@ void get_sysparam_info() {
     
     sysparam_get_info(&base_addr, &num_sectors);
     
-    LOG(LOG_ACTION, "%s: Sysparam base address %i, num_sectors %i\n", __func__, base_addr, num_sectors);
+    LOG(LOG_ACTION, "%s: Sysparam base address 0x%X, num_sectors %i\n", __func__, base_addr, num_sectors);
     
     uint32_t lcm_sysparam = 0xF7000;
     uint32_t app_sysparam = sdk_flashchip.chip_size - 9 * sdk_flashchip.sector_size;

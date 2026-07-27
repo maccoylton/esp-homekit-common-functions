@@ -538,7 +538,6 @@ void on_wifi_ready ( void) {
     LOG(LOG_FLOW, "%s: UDP Log Init Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
     LOG(LOG_MEM, "%s: Start, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
-    get_sysparam_info();
     reset_information = sdk_system_get_rst_info();
     switch (reset_information->reason){
         case DEFAULT_RST:
@@ -560,6 +559,8 @@ void on_wifi_ready ( void) {
             
     }
     LOG(LOG_ERR, "%s: Exception Cause: %d\nEPC 1: %d\nEPC 2: %d\nEPC 3: %d\nExv virtul address: %d\nDEPC: %d\nReturn Address:%d\n", __func__,  reset_information->exccause, reset_information->epc1, reset_information->epc2, reset_information->epc3, reset_information->excvaddr, reset_information->depc,reset_information->rtn_addr);
+    
+    get_sysparam_info();
     
     LOG(LOG_FLOW, "%s: Calling homekit_server_init, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
     homekit_server_init(&config);
@@ -588,6 +589,8 @@ void standard_init (homekit_characteristic_t *name, homekit_characteristic_t *ma
     uart_set_baud(0, 115200);
     LOG(LOG_FLOW, "%s: UART, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
 
+    get_sysparam_info();
+    
     load_characteristic_from_flash (&wifi_check_interval);
     load_characteristic_from_flash (&ota_beta);
     load_characteristic_from_flash (&lcm_beta);
