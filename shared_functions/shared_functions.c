@@ -164,64 +164,100 @@ void checkWifiTask(void *pvParameters)
     wifi_connected = false;
     
     ip_addr_t dns_target_ip;
-    int dns_error_count = 0;
+    int consecutive_failures = 0;
+    int reconnect_attempts = 0;
     int ret=0;
 
     while (1)
     {
         if (wifi_check_interval.value.int_value != 0 && accessory_paired == true) {
-            /* only check if no zero */
             LOG(LOG_WIFI, "\n%s interval %d, Status: ", __func__, wifi_check_interval.value.int_value);
             status = sdk_wifi_station_get_connect_status();
+            
+            bool station_ok = false;
+            
             switch (status)
             {
-                case STATION_WRONG_PASSWORD:
-                    LOG(LOG_WIFI, "wrong password: ");
-                    led_code (status_led_gpio, WIFI_ISSUE);
-                    wifi_connected = false;
-                    break;
-                case STATION_NO_AP_FOUND:
-                    LOG(LOG_WIFI, "AP not found: ");
-                    led_code (status_led_gpio, WIFI_ISSUE);
-                    wifi_connected = false;
-                    break;
-                case STATION_CONNECT_FAIL:
-                    LOG(LOG_WIFI, "connection failed: ");
-                    led_code (status_led_gpio, WIFI_ISSUE);
-                    wifi_connected = false;
-                    break;
                 case STATION_GOT_IP:
-                    LOG(LOG_WIFI, "connection ok: ");
-                    wifi_connected = true;
-                    led_code (status_led_gpio,  WIFI_CONNECTED);
-                    break;
-                default:
-                    LOG(LOG_WIFI, " default = %d: ", status);
-                    led_code (status_led_gpio, WIFI_ISSUE);
+                    LOG(LOG_WIFI, "GOT_IP ");
+                    /* Station reports connected — verify with DNS to catch ghost associations */
+                    ret = netconn_gethostbyname(HOST, &dns_target_ip);
+                    if (ret == ERR_OK) {
+                        LOG(LOG_WIFI, "DNS OK ");
+                        wifi_connected = true;
+                        led_code(status_led_gpio, WIFI_CONNECTED);
+                        station_ok = true;
+                    } else {
+                        LOG(LOG_WIFI, "DNS fail:%d ", ret);
+                        led_code(status_led_gpio, WIFI_ISSUE);
+                        wifi_connected = false;
+                    }
                     break;
                     
+                case STATION_IDLE:
+                    LOG(LOG_WIFI, "idle ");
+                    led_code(status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                    
+                case STATION_WRONG_PASSWORD:
+                    LOG(LOG_WIFI, "wrong pwd ");
+                    led_code(status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                    
+                case STATION_NO_AP_FOUND:
+                    LOG(LOG_WIFI, "AP not found ");
+                    led_code(status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                    
+                case STATION_CONNECTING:
+                    LOG(LOG_WIFI, "connecting ");
+                    wifi_connected = false;
+                    break;
+                    
+                case STATION_CONNECT_FAIL:
+                    LOG(LOG_WIFI, "connect fail ");
+                    led_code(status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
+                    
+                default:
+                    LOG(LOG_WIFI, "unknown=%d ", status);
+                    led_code(status_led_gpio, WIFI_ISSUE);
+                    wifi_connected = false;
+                    break;
             }
-
-    	    ret = netconn_gethostbyname(HOST, &dns_target_ip);
-    	    switch (ret){
-        	case ERR_OK:
-                	LOG(LOG_WIFI, "DNS OK ");
-                    dns_error_count = 0;
-                	break;
-        	default:
-                	LOG(LOG_WIFI, "DNS failed: %d ", ret);
-                    led_code (status_led_gpio, WIFI_ISSUE);
-                    dns_error_count++;
-                    if (dns_error_count > DNS_CHECK_MAX_RETRIES){
-                        LOG(LOG_WIFI, "DNS check max retries exceeded restarting accessory\n");
+            
+            if (station_ok) {
+                /* All good — reset failure counters */
+                consecutive_failures = 0;
+                reconnect_attempts = 0;
+            } else {
+                consecutive_failures++;
+                LOG(LOG_WIFI, "fail %d/%d ", consecutive_failures, WIFI_FAIL_THRESHOLD_RECONNECT);
+                
+                if (consecutive_failures >= WIFI_FAIL_THRESHOLD_RECONNECT) {
+                    if (reconnect_attempts < WIFI_RECONNECT_MAX) {
+                        reconnect_attempts++;
+                        LOG(LOG_WIFI, "reconnect %d/%d ", reconnect_attempts, WIFI_RECONNECT_MAX);
+                        /* Force a fresh WiFi association to break out of ghost state */
+                        sdk_wifi_station_disconnect();
+                        vTaskDelay(1000 / portTICK_PERIOD_MS);
+                        sdk_wifi_station_connect();
+                        consecutive_failures = 0;
+                    } else {
+                        LOG(LOG_WIFI, "max reconnects, restarting\n");
                         save_characteristics();
                         sdk_system_restart();
                     }
+                }
             }
         }
         else {
-            LOG(LOG_WIFI, "\n%s : no check performed, check interval: %d, accessory paired: %d", __func__, wifi_check_interval.value.int_value, accessory_paired);
-            
+            LOG(LOG_WIFI, "\n%s : no check, interval=%d paired=%d", __func__, 
+                wifi_check_interval.value.int_value, accessory_paired);
         }
         
         if (sntp_on == true) {
@@ -229,8 +265,8 @@ void checkWifiTask(void *pvParameters)
             LOG(LOG_WIFI, "TIME: %s ", ctime(&ts));
         }
         
-        printf ("Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)/4);
-        /*uxTaskGetStackHighWaterMark returns a number in bytes, stack is created in words, so device by 4 to get nujber of words left on stack */
+        printf("Free Heap=%d, Free Stack=%lu\n", xPortGetFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)/4);
+        /* uxTaskGetStackHighWaterMark returns bytes, stack is created in words, divide by 4 */
         
         
         if ( wifi_check_interval.value.int_value==0) {

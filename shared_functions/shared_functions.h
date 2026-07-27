@@ -52,6 +52,8 @@ shared functions used all accessorys
 #define WIFI_ISSUE                  (blinking_params_t){10,0}
 #define HOST "github.com"
 #define DNS_CHECK_MAX_RETRIES 12
+#define WIFI_FAIL_THRESHOLD_RECONNECT  3   /* Consecutive failures before forcing WiFi reconnect */
+#define WIFI_RECONNECT_MAX             3   /* Max reconnect cycles before full restart */
 
 #define LOG_ERR    1
 #define LOG_ACTION 2
