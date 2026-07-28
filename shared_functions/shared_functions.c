@@ -10,6 +10,7 @@
 
 #include <shared_functions.h>
 #include <sysparam.h>
+#include <lwip/sockets.h>    /* gateway reachability check (socket, connect, select) */
 
 
 bool accessory_paired = false;
@@ -157,6 +158,69 @@ void task_stats_set (homekit_value_t value) {
 }
 
 
+static bool check_gateway_reachable(void)
+{
+    struct ip_info info;
+    if (!sdk_wifi_get_ip_info(STATION_IF, &info)) {
+        LOG(LOG_WIFI, "gw: get_ip_info fail ");
+        return false;
+    }
+    if (info.gw.addr == 0) {
+        LOG(LOG_WIFI, "gw: no addr ");
+        return false;
+    }
+
+    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    if (sock < 0) {
+        LOG(LOG_WIFI, "gw: socket fail ");
+        return false;
+    }
+
+    struct sockaddr_in addr = { 0 };
+    addr.sin_family = AF_INET;
+    addr.sin_addr.s_addr = info.gw.addr;
+    addr.sin_port = htons(443);
+
+    /* Non-blocking connect to the gateway */
+    int mode = 1;
+    lwip_ioctl(sock, FIONBIO, &mode);
+
+    int ret = connect(sock, (struct sockaddr *)&addr, sizeof(addr));
+    if (ret == 0) {
+        /* Connected immediately (port 443 open on router) */
+        lwip_close(sock);
+        return true;
+    }
+
+    if (errno != EINPROGRESS) {
+        /* ECONNREFUSED = RST from closed port — proves router is alive */
+        bool reachable = (errno == ECONNREFUSED);
+        LOG(LOG_WIFI, "gw: errno=%d reachable=%d ", errno, reachable);
+        lwip_close(sock);
+        return reachable;
+    }
+
+    /* Poll for connection with 3-second timeout */
+    struct timeval tv = { .tv_sec = 3, .tv_usec = 0 };
+    fd_set fds;
+    FD_ZERO(&fds);
+    FD_SET(sock, &fds);
+
+    ret = select(sock + 1, NULL, &fds, NULL, &tv);
+    if (ret > 0) {
+        int error;
+        socklen_t len = sizeof(error);
+        getsockopt(sock, SOL_SOCKET, SO_ERROR, &error, &len);
+        lwip_close(sock);
+        return (error == 0 || error == ECONNREFUSED);
+    }
+
+    LOG(LOG_WIFI, "gw: timeout ");
+    lwip_close(sock);
+    return false;
+}
+
+
 void checkWifiTask(void *pvParameters)
 {
     uint8_t status ;
@@ -180,7 +244,16 @@ void checkWifiTask(void *pvParameters)
                     LOG(LOG_WIFI, "GOT_IP ");
                     wifi_connected = true;
                     led_code(status_led_gpio, WIFI_CONNECTED);
-                    station_ok = true;
+                    /* Secondary check: can we actually reach the router?
+                       Catches the «stale GOT_IP» bug after router reboot. */
+                    if (check_gateway_reachable()) {
+                        station_ok = true;
+                    } else {
+                        LOG(LOG_WIFI, "(stale) ");
+                        station_ok = false;
+                        wifi_connected = false;
+                        led_code(status_led_gpio, WIFI_ISSUE);
+                    }
                     break;
                     
                 case STATION_IDLE:
