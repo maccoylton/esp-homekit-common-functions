@@ -10,7 +10,12 @@
 
 #include <shared_functions.h>
 #include <sysparam.h>
+#include <esp/uart.h>
+#include <stdlib.h>
 #include <lwip/sockets.h>    /* gateway reachability check (socket, connect, select) */
+#include <lwip/udp.h>
+#include <lwip/ip_addr.h>
+#include <string.h>
 
 
 bool accessory_paired = false;
@@ -361,9 +366,197 @@ void wifi_check_stop_start (int interval)
             xTaskCreate (checkWifiTask, "Check WiFi Task", CHECK_WIFI_STACK_SIZE, NULL, tskIDLE_PRIORITY+1, &wifi_check_interval_task_handle);
         }
     }
-    LOG(LOG_MEM, "%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+LOG(LOG_MEM, "%s: End, Freep Heap=%d\n", __func__, xPortGetFreeHeapSize());
+
 }
 
+/*
+ * Factory Reset — UDP callback mechanism
+ *
+ * ota_string format: pipe-delimited tags, each tag:value
+ *   e.g. "FRPW:MySecret|OTAURL:https://..."
+ */
+
+#define FACTORY_RESET_PORT    9876
+#define CMD_PREFIX            "FACTORY_RESET "
+#define PREFIX_LEN            14
+#define MAX_TAGGED_LEN        128
+
+#define TAG_FRPW              "FRPW:"
+#define TAG_FRPW_LEN          5
+
+static struct udp_pcb *fr_pcb = NULL;
+
+/*
+ * Find a tag:value pair in a pipe-delimited string.
+ * Scans for TAG at the start of any pipe-separated segment.
+ * Returns pointer to the value (after TAG:), sets *out_len.
+ * Returns NULL if tag not found.
+ */
+static const char *find_tagged_value(const char *str, const char *tag,
+                                      size_t tag_len, size_t *out_len) {
+    const char *p = str;
+    while (p && *p) {
+        if (strncmp(p, tag, tag_len) == 0) {
+            const char *val = p + tag_len;
+            const char *end = strchr(val, '|');
+            *out_len = end ? (size_t)(end - val) : strlen(val);
+            return val;
+        }
+        p = strchr(p, '|');
+        if (p) p++;
+    }
+    return NULL;
+}
+
+/*
+ * lwIP UDP receive callback.
+ * Expects: "FACTORY_RESET <password>"
+ * Reads ota_string, finds FRPW: tag, compares passwords.
+ * On match: sets ota_count=14, reboots into LCM for factory reset.
+ */
+static void fr_recv_callback(void *arg, struct udp_pcb *pcb,
+                              struct pbuf *p,
+                              const ip_addr_t *addr, u16_t port) {
+    LOG(LOG_MEM, "fr_recv_callback: packet received from %s:%d, len=%d\n", ipaddr_ntoa(addr), port, p->len);
+    
+    if (p == NULL) {
+        LOG(LOG_MEM, "fr_recv_callback: NULL packet\n");
+        return;
+    }
+
+    // Safe copy - don't modify pbuf directly
+    char payload[64];
+    size_t copy_len = p->len < sizeof(payload) - 1 ? p->len : sizeof(payload) - 1;
+    memcpy(payload, p->payload, copy_len);
+    payload[copy_len] = '\0';
+
+    // Strip trailing whitespace/newlines
+    while (copy_len > 0 && (payload[copy_len-1] <= ' ' || payload[copy_len-1] > '~')) {
+        payload[copy_len-1] = '\0';
+        copy_len--;
+    }
+
+    LOG(LOG_MEM, "fr_recv_callback: payload='%s'\n", payload);
+
+    if (strncmp(payload, CMD_PREFIX, PREFIX_LEN) != 0) {
+        LOG(LOG_MEM, "fr_recv_callback: ignoring non-factory-reset packet\n");
+        pbuf_free(p);
+        return;
+    }
+
+    const char *received_pw = payload + PREFIX_LEN;
+    size_t received_len = strlen(received_pw);
+    LOG(LOG_MEM, "fr_recv_callback: searching for password '%.*s' (len=%d)\n", (int)received_len, received_pw, received_len);
+
+    char *stored = NULL;
+    int ret = sysparam_get_string("ota_string", &stored);
+
+    if (ret == SYSPARAM_OK && stored != NULL) {
+        LOG(LOG_MEM, "fr_recv_callback: found stored ota_string='%s'\n", stored);
+        size_t pw_len = 0;
+        const char *actual_pw = find_tagged_value(stored, TAG_FRPW,
+                                                   TAG_FRPW_LEN, &pw_len);
+        if (actual_pw) {
+            LOG(LOG_MEM, "fr_recv_callback: actual_fr_pw='%.*s' (len=%d)\n", (int)pw_len, actual_pw, pw_len);
+        }
+        if (actual_pw && pw_len > 0 &&
+            pw_len == received_len &&
+            strncmp(actual_pw, received_pw, pw_len) == 0) {
+            LOG(LOG_MEM, "fr_recv_callback: PASSWORD MATCH! Executing factory reset!\n");
+            // LCM reads ota_count as STRING, must store as string
+            sysparam_set_string("ota_count", "14");
+            rboot_set_temp_rom(1);
+            // Flush UART before restart
+            uart_flush_txfifo(0);
+            vTaskDelay(100 / portTICK_PERIOD_MS);
+
+            pbuf_free(p);
+            sdk_system_restart();
+        } else {
+            if (actual_pw && pw_len > 0) {
+                LOG(LOG_MEM, "fr_recv_callback: PASSWORD MISMATCH - expected '%.*s', got '%s'\n", (int)pw_len, actual_pw, received_pw);
+            } else {
+                LOG(LOG_MEM, "fr_recv_callback: no FRPW tag found in stored\n");
+            }
+        }
+        free(stored);
+    } else {
+        LOG(LOG_MEM, "fr_recv_callback: no stored ota_string found\n");
+    }
+
+    pbuf_free(p);
+}
+
+void factory_reset_cmd_start(void) {
+    LOG(LOG_MEM, "%s: Starting factory reset UDP listener on port %d\n", __func__, FACTORY_RESET_PORT);
+    if (fr_pcb != NULL) {
+        LOG(LOG_MEM, "%s: Already running, PCB=%p\n", __func__, fr_pcb);
+        return;
+    }
+
+    LOG(LOG_MEM, "%s: Creating UDP PCB\n", __func__);
+    fr_pcb = udp_new();
+    if (fr_pcb == NULL) {
+        LOG(LOG_MEM, "%s: FAILED to create UDP PCB\n", __func__);
+        return;
+    }
+
+    LOG(LOG_MEM, "%s: Binding to port %d\n", __func__, FACTORY_RESET_PORT);
+    err_t err = udp_bind(fr_pcb, IP_ADDR_ANY, FACTORY_RESET_PORT);
+    if (err != ERR_OK) {
+        LOG(LOG_MEM, "%s: BIND FAILED with error %d, cleaning up\n", __func__, err);
+        udp_remove(fr_pcb);
+        fr_pcb = NULL;
+        return;
+    }
+
+    LOG(LOG_MEM, "%s: Setting receive callback\n", __func__);
+    udp_recv(fr_pcb, fr_recv_callback, NULL);
+    
+    LOG(LOG_MEM, "%s: Factory Reset UDP listener COMPLETE - ready for commands\n", __func__);
+}
+
+void factory_reset_set_password_callback(homekit_characteristic_t *ch,
+                                          homekit_value_t value) {
+    LOG(LOG_MEM, "%s: called, format=%d, string_value=%p, len=%d\n", __func__, value.format, value.string_value, value.string_value ? strlen(value.string_value) : 0);
+    
+    char *existing = NULL;
+    int ret = sysparam_get_string("ota_string", &existing);
+    LOG(LOG_MEM, "%s: sysparam_get_string ret=%d, existing='%s'\n", __func__, ret, existing ? existing : "NULL");
+
+    size_t dummy;
+    if (ret == SYSPARAM_OK && existing != NULL &&
+        find_tagged_value(existing, TAG_FRPW, TAG_FRPW_LEN, &dummy) != NULL) {
+        LOG(LOG_MEM, "%s: FRPW already exists, returning early\n", __func__);
+        free(existing);
+        return;
+    }
+
+    // Accept any non-null string value (HomeKit wire format encodes format differently)
+    if (value.string_value != NULL && !value.is_null && strlen(value.string_value) > 0) {
+
+        char tagged[MAX_TAGGED_LEN];
+
+        if (ret == SYSPARAM_OK && existing != NULL && strlen(existing) > 0) {
+            snprintf(tagged, sizeof(tagged), "%s|%s%s",
+                     existing, TAG_FRPW, value.string_value);
+        } else {
+            snprintf(tagged, sizeof(tagged), "%s%s",
+                     TAG_FRPW, value.string_value);
+        }
+        
+        LOG(LOG_MEM, "%s: storing tagged='%s'\n", __func__, tagged);
+        sysparam_status_t set_ret = sysparam_set_string("ota_string", tagged);
+        LOG(LOG_MEM, "%s: sysparam_set_string returned %d\n", __func__, set_ret);
+    } else {
+        LOG(LOG_MEM, "%s: INVALID - is_null=%d, string_value=%p, len=%d\n", 
+            __func__, value.is_null, value.string_value, 
+            value.string_value ? strlen(value.string_value) : 0);
+    }
+
+    if (existing != NULL) free(existing);
+}
 
 void preserve_state_set (homekit_value_t value){
     

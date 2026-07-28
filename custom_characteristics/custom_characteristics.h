@@ -497,6 +497,15 @@
 .value = HOMEKIT_BOOL_(_value), \
 ##__VA_ARGS__
 
+
+#define HOMEKIT_CHARACTERISTIC_CUSTOM_SET_FACTORY_PASSWORD HOMEKIT_CUSTOM_UUID_DBB("F0000026")
+#define HOMEKIT_DECLARE_CHARACTERISTIC_CUSTOM_SET_FACTORY_PASSWORD(...) \
+.type = HOMEKIT_CHARACTERISTIC_CUSTOM_SET_FACTORY_PASSWORD, \
+.description = "Set Factory Reset Password", \
+.format = homekit_format_string, \
+.permissions = homekit_permissions_paired_write, \
+##__VA_ARGS__
+
 #endif
 
 void save_characteristic_to_flash (homekit_characteristic_t *ch, homekit_value_t value);

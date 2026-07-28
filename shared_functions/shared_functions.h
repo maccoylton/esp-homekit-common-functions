@@ -147,5 +147,9 @@ void preserve_state_set (homekit_value_t value);
 
 void log_level_set (homekit_value_t value);
 
+// Factory reset — UDP listener and password setter
+void factory_reset_cmd_start(void);
+void factory_reset_set_password_callback(homekit_characteristic_t *ch,
+                                         homekit_value_t value);
 
 #endif
